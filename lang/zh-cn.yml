@@ -1,0 +1,31 @@
+- lang:zh-cn
+- name:中文-简体
+- author:Flowey Lyu
+
+# 如此引用：$wac.ui.edit.cut
+
+- content:
+  - wac:
+    - ui:
+      - title:Waffle & Cookie
+      - title_file:Waffle & Cookie - {0}
+      - ok:好 
+      - cancel:取消
+      - dialog:
+        - if_overwrite:{0}已存在，你确定要覆盖它吗？
+      - file:
+        - file:文件
+        - new:新建文件
+        - open:打开
+        - save:保存
+        - save_as:另存为
+        - quit:退出
+      - edit:
+        - edit:编辑
+        - copy:拷贝
+        - paste:粘贴
+        - cut:剪切
+      - control:
+        - control:控制
+      - help:
+        - about:关于

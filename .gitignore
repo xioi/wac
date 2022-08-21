@@ -1,0 +1,4 @@
+.ccls-cache/
+.vscode/
+build*/
+.DS_Store
