@@ -27,7 +27,7 @@
     WACRenderBegin();
     WACClear( 1, 1, 1, 1);
     [container draw:cxt];
-    WACDrawRect( WACNewFRect( -0.5, -0.5, 1, 1), WACNewColor( 1, 0, 0, 1));
+    WACDrawRect( WACNewFRect( 20, 20, 200, 200), WACNewColor( 1, 0, 0, 1));
     WACRenderEnd();
     SDL_GL_SwapWindow( mount);
 }
@@ -92,5 +92,9 @@
 }
 - (void)drawFilledRect:(WACFRect)rect color:(WACColor)col {
     WACDrawRect( rect, col);
+}
+- (void)drawImage:(WACTexture*)txt at:(WACFPoint)pos {
+    // TODO:add a more general method
+
 }
 @end

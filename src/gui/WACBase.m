@@ -3,7 +3,7 @@
 
 @implementation WACText
 - (NSString*)value { // default implementation
-    return @"{Default text in WACBase.m:5}";
+    return @"{Default text in WACBase.m:6}";
 }
 @end
 

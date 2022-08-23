@@ -9,7 +9,7 @@
     - ui:
       - title:Waffle & Cookie
       - title_file:Waffle & Cookie - {0}
-      - ok:好 
+      - ok:好
       - cancel:取消
       - dialog:
         - if_overwrite:{0}已存在，你确定要覆盖它吗？

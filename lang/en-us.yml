@@ -1,5 +1,5 @@
-- lang:zh-cn
-- name:中文-简体
+- lang:en-us
+- name:English - United States
 - author:Flowey Lyu
 
 # 如此引用：$wac.ui.edit.cut
@@ -9,23 +9,23 @@
     - ui:
       - title:Waffle & Cookie
       - title_file:Waffle & Cookie - {0}
-      - ok:好 
-      - cancel:取消
+      - ok:Ok
+      - cancel:Cancel
       - dialog:
-        - if_overwrite:{0}已存在，你确定要覆盖它吗？
+        - if_overwrite:{0} is existed. Are you sure to overwrite it?
       - file:
         - file:File
         - new:New File
-        - open:打开
-        - save:保存
-        - save_as:另存为
-        - quit:退出
+        - open:Open
+        - save:Save
+        - save_as:Save as
+        - quit:Quit
       - edit:
-        - edit:编辑
-        - copy:拷贝
-        - paste:粘贴
-        - cut:剪切
+        - edit:Edit
+        - copy:Copy
+        - paste:Paste
+        - cut:Cut
       - control:
-        - control:控制
+        - control:Control
       - help:
-        - about:关于
+        - about:About

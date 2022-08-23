@@ -5,8 +5,7 @@
 - (NSString*)value;
 @end
 
-typedef NSUInteger WACWindowStatus;
-NS_ENUM( WACWindowStatus) {
+typedef NS_ENUM( NSUInteger, WACWindowStatus) {
     WACFreeWindow = 0,
     WACFocusingWindow
 };
@@ -49,6 +48,7 @@ typedef struct WACKey {
 
 - (void)setOffset:(WACFPoint)offset;
 - (void)drawFilledRect:(WACFRect)rect color:(WACColor)col;
+- (void)drawImage:(WACTexture*)txt at:(WACFPoint)pos;
 @end
 
 @interface WACView : NSObject {

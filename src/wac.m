@@ -14,7 +14,7 @@ void cleanup() {
     SDL_Quit();
 }
 
-void setup_cocoa();
+//void setup_cocoa();
 
 int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
@@ -25,18 +25,6 @@ int main( int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
     atexit( cleanup);
-/*
-    nfdchar_t *filepath = NULL;
-    nfdresult_t r = NFD_OpenDialog( NULL, NULL, &filepath);
-    NSString *title = NULL;
-    if( r == NFD_OKAY) {
-        NSLog( @"The file is:%s", filepath);
-        title = WACFormat( @"Waffle & Cookie - {0}", [NSString stringWithUTF8String:filepath]);
-    }else if( r == NFD_CANCEL) {
-        NSLog( @"User canceled.");
-        title = @"Waffle & Cookie";
-    }
-*/
     const uint width = 800, height = 600;
 
     SDL_Window *wnd = SDL_CreateWindow( "Waffle & Cookie",
@@ -58,7 +46,7 @@ int main( int argc, char **argv) {
     WACRenderSetup();
     WACOnViewportResized( width, height);
 
-    setup_cocoa();
+    //setup_cocoa();
 
     SDL_Event e;
     while( YES) {
