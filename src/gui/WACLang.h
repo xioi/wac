@@ -3,7 +3,12 @@
 @interface WACLanguagePackage : NSObject {
     @private
     NSMutableDictionary *data;
+    //NSString *name, *identity, *author, *version;
+    NSString *identity, *author;
 }
+@property (readonly) NSString *identity;
+@property (readonly) NSString *author;
+
 - (void)addEntry:(NSString*)identity value:(NSString*)value;
 - (NSString*)valueOf:(NSString*)identity;
 @end

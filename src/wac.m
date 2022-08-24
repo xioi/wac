@@ -6,6 +6,7 @@
 #import "gui/nfd.h"
 #import "gui/WACWindow.h"
 #import "gui/WACRender.h"
+#import "gui/WACLang.h"
 
 NSString* WACFormat( NSString *fmt, ...);
 
@@ -15,6 +16,7 @@ void cleanup() {
 }
 
 //void setup_cocoa();
+WACLangMgr *gLangMgr;
 
 int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
@@ -37,6 +39,12 @@ int main( int argc, char **argv) {
         NSLog( @"This graphics device doesn't support OpenGL 3.3.");
         goto end;
     }
+
+    gLangMgr = [[[WACLangMgr alloc] init] autorelease];
+    WACLanguagePackage *pak = [gLangMgr getPackage:@"zh-cn"];
+    [pak retain];
+    NSLog( @"%@", [pak valueOf:@"lang"]);
+    [pak release];
     
     glEnable( GL_BLEND);
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1);

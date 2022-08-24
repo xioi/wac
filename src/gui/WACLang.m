@@ -2,6 +2,9 @@
 #import <yaml.h>
 
 @implementation WACLanguagePackage
+@synthesize identity;
+@synthesize author;
+
 - (id)init {
     if( self = [super init]) {
         data = [NSMutableDictionary new];
@@ -13,11 +16,11 @@
     [super dealloc];
 }
 
-- (void)addEntry:(NSString*)identity value:(NSString*)value {
-    [data setObject:value forKey:identity];
+- (void)addEntry:(NSString*)identity_ value:(NSString*)value {
+    [data setObject:value forKey:identity_];
 }
-- (NSString*)valueOf:(NSString*)identity {
-    return data[identity];
+- (NSString*)valueOf:(NSString*)identity_ {
+    return data[identity_];
 }
 @end
 
@@ -35,42 +38,73 @@
     [super dealloc];
 }
 
-- (void)loadLanguageFile:(NSString*)name {
-    id old = [self getPackage:name];
-    [name release];
+- (void)loadLanguageFile:(NSString*)name { // load language file
+    [[self getPackage:name] release]; // release the old one
 
-    id new_one = [WACLanguagePackage new];
-    [packages setObject:new_one forKey:name];
-    // TODO:load yml file
+    id pak = [WACLanguagePackage new];
+    [packages setObject:pak forKey:name];
     NSString *path = [NSString stringWithFormat:@"./lang/%@.yml", name];
 
     yaml_parser_t parser;
-    yaml_event_t e;
+    yaml_token_t token;
     BOOL done = NO;
     yaml_parser_initialize( &parser);
 
-    FILE *input = fopen( [path UTF8String], "rb");
-    if( input == NULL) {
-        NSLog( @"Failed to load file:%@", path);
-        return;
-    }
-    yaml_parser_set_input_file( &parser, input);
+    NSData *data = [[NSData alloc] initWithContentsOfFile:path];            // load file into memory via NSData
+    if( [data bytes] == NULL) goto error;
+    yaml_parser_set_input_string( &parser, [data bytes], [data length]);
 
-    while( !done) {
-        if( !yaml_parser_parse( &parser, &e)) {
-            goto error;
+    NSMutableArray *stack = [NSMutableArray arrayWithArray:@[@""]];         // prefix stack
+    BOOL new_key = NO, in_content = NO, toppest = YES;
+    NSString *last_one = NULL, *base = @"";
+    do {
+        yaml_parser_scan( &parser, &token);
+        switch( token.type) {
+            case YAML_KEY_TOKEN:
+                new_key = YES;
+                break;
+            case YAML_VALUE_TOKEN:
+                break;
+            case YAML_SCALAR_TOKEN:
+                if( new_key) {
+                    last_one = [NSString stringWithUTF8String:(const char*)token.data.scalar.value];
+                    new_key = NO;
+                }else {
+                    NSString *val = [NSString stringWithUTF8String:(const char*)token.data.scalar.value];
+                    NSString *now_key = toppest ? last_one : [NSString stringWithFormat:@"%@.%@", base, last_one];
+                    [pak addEntry:now_key value:val];
+                }
+                break;
+            case YAML_BLOCK_MAPPING_START_TOKEN:
+                if( last_one != NULL) {
+                    base = toppest ? last_one : [NSString stringWithFormat:@"%@.%@", base, last_one];
+                    [stack addObject:base];
+                    toppest = NO;
+                }
+                break;
+            case YAML_BLOCK_END_TOKEN:
+                [stack removeLastObject];
+                base = [stack lastObject];
+                toppest = [stack count] == 1;
+                break;
+            default:
+                break;
         }
 
-        done = (e.type == YAML_STREAM_END_EVENT);
+        if( token.type != YAML_STREAM_END_TOKEN) {
+            yaml_token_delete( &token);
+        }
+    } while( token.type != YAML_STREAM_END_TOKEN);
 
-        yaml_event_delete( &e);
-    }
-
+    yaml_token_delete( &token);
     yaml_parser_delete( &parser);
-    fclose( input);
+    [data release];
+    [stack release];
+    return;
 error:
     NSLog( @"Failed to parse lang file:%@", path);
     yaml_parser_delete( &parser);
+    [data release];
 }
 - (void)switchLanguagePackage:(NSString*)languageName {
     id n = [self getPackage:languageName];
