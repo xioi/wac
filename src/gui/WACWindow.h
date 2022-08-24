@@ -3,6 +3,7 @@
 
 @interface WACText : NSObject
 - (NSString*)value;
+- (NSString*)remake;
 @end
 
 typedef NS_ENUM( NSUInteger, WACWindowStatus) {
@@ -31,7 +32,8 @@ typedef struct WACKey {
 
 @interface WACLangText : WACText {
     @private
-    NSString *lang;
+    NSMutableArray *text;
+    NSString *cache;
 }
 - (id)initFromString:(NSString*)lang;
 + (instancetype)textFromString:(NSString*)lang;

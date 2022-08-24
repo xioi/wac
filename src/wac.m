@@ -43,7 +43,10 @@ int main( int argc, char **argv) {
     gLangMgr = [[[WACLangMgr alloc] init] autorelease];
     WACLanguagePackage *pak = [gLangMgr getPackage:@"zh-cn"];
     [pak retain];
-    NSLog( @"%@", [pak valueOf:@"lang"]);
+    NSLog( @"Language Package[%@] by %@", [pak identity], [pak author]);
+    WACLangText *langText = [WACLangText textFromString:@"AAA$wac.ui.file.file$BBBB,ALSO DISPLAYS\\$ABCABC\\$"];
+    NSLog( @"str is:%@", [langText value]);
+    [langText release];
     [pak release];
     
     glEnable( GL_BLEND);
@@ -69,7 +72,7 @@ int main( int argc, char **argv) {
     }
 end:
     //SDL_Quit();
-    [pool release];
+    //[pool release];
     return 0;
 }
 

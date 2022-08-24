@@ -96,6 +96,9 @@
         }
     } while( token.type != YAML_STREAM_END_TOKEN);
 
+    [pak setIdentity:[pak valueOf:@"lang"]];
+    [pak setAuthor:[pak valueOf:@"author"]];
+
     yaml_token_delete( &token);
     yaml_parser_delete( &parser);
     [data release];

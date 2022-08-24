@@ -6,8 +6,8 @@
     //NSString *name, *identity, *author, *version;
     NSString *identity, *author;
 }
-@property (readonly) NSString *identity;
-@property (readonly) NSString *author;
+@property (readwrite, copy) NSString *identity;
+@property (readwrite, copy) NSString *author;
 
 - (void)addEntry:(NSString*)identity value:(NSString*)value;
 - (NSString*)valueOf:(NSString*)identity;
