@@ -1,31 +1,32 @@
-- lang:en-us
-- name:English - United States
-- author:Flowey Lyu
+lang: en-us
+name: English - United States
+author: Flowey Lyu
+version: developing
 
 # 如此引用：$wac.ui.edit.cut
 
-- content:
-  - wac:
-    - ui:
-      - title:Waffle & Cookie
-      - title_file:Waffle & Cookie - {0}
-      - ok:Ok
-      - cancel:Cancel
-      - dialog:
-        - if_overwrite:{0} is existed. Are you sure to overwrite it?
-      - file:
-        - file:File
-        - new:New File
-        - open:Open
-        - save:Save
-        - save_as:Save as
-        - quit:Quit
-      - edit:
-        - edit:Edit
-        - copy:Copy
-        - paste:Paste
-        - cut:Cut
-      - control:
-        - control:Control
-      - help:
-        - about:About
+content:
+  wac:
+    ui:
+      title: Waffle & Cookie
+      title_file: Waffle & Cookie {0}
+      ok: Ok
+      cancel: Cancel
+      dialog:
+        if_overwrite: "{0} is existed. Do you want to overwrite it?"
+      file:
+        file: File
+        new: New File
+        open: Open
+        save: Save
+        save_as: Save as
+        quit: Quit
+      edit:
+        edit: Edit
+        copy: Copy
+        paste: Paste
+        cut: Cut
+      control:
+        control: Control
+      help:
+        about: About
