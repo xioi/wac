@@ -7,3 +7,34 @@ Waffle & Cookie是一个非官方的动画软件，主要使用Objective-C编写
 ⚠️Warning⚠️: This project is still under developing, and its process' updating is not as quick as you think.
 
 ⚠️注意⚠️：这个项目还在开发中，而且进度并不如你想象的那么快。
+
+## How to compile this project? 如何编译这个项目？
+You needs vcpkg, and install following packages:
+```
+vcpkg install sdl2
+vcpkg install freetype
+vcpkg install libyaml
+```
+<!--Then if you're using MS Windows, you also have to install GNUStep.-->
+then run in the project's root:
+```
+mkdir build
+cd build
+cmake .. -DCMAKE_TOOLCHAIN_FILE=YOUR_PATH_TO_VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+make
+```
+
+你需要vcpkg，然后安装下面这些包：
+```
+vcpkg install sdl2
+vcpkg install freetype
+vcpkg install libyaml
+```
+<!--Then if you're using MS Windows, you also have to install GNUStep.-->
+接着在项目根目录运行：
+```
+mkdir build
+cd build
+cmake .. -DCMAKE_TOOLCHAIN_FILE=你到vcpkg根目录的路径/scripts/buildsystems/vcpkg.cmake
+make
+```
