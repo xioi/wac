@@ -39,10 +39,10 @@ const char
         "uniform sampler2D uTexture;\n"
 
         "void main() {\n"
-        "    outFragColor = fs_in.color;// * texture( uTexture, fs_in.texCoord);\n"
+        "    outFragColor = fs_in.color * texture( uTexture, fs_in.texCoord);\n"
         "}\n";
 
-uint gVao, gRectVbo, gRectIbo;
+uint gVao, gRectVbo, gRectIbo, gGeneralVbo, gGeneralIbo;
 WACTexture *gWhite;
 
 void WACRenderSetup() {
@@ -66,6 +66,8 @@ void WACRenderSetup() {
     glGenVertexArrays( 1, &gVao);
     glGenBuffers( 1, &gRectVbo);
     glGenBuffers( 1, &gRectIbo);
+    glGenBuffers( 1, &gGeneralVbo);
+    glGenBuffers( 1, &gGeneralIbo);
 
     const char white_txt[] = { 255, 255, 255, 255};
     gWhite = [[WACTexture alloc] initFromRGBAImage:white_txt width:1 htight:1];
@@ -76,6 +78,8 @@ void WACRenderCleanup() {
     glDeleteVertexArrays( 1, &gVao);
     glDeleteBuffers( 1, &gRectVbo);
     glDeleteBuffers( 1, &gRectIbo);
+    glDeleteBuffers( 1, &gGeneralVbo);
+    glDeleteBuffers( 1, &gGeneralIbo);
 }
 
 WACFRect WACNewFRect( float x, float y, float w, float h) {
@@ -147,22 +151,22 @@ void configureNormalProgram() {
     glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)(5*sizeof( float)));
 }
 
+void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection);
+void WACDrawElements( float *vertexs, int *indexs, int index_count, int vertex_count, struct mat4 *projection, WACTexture *texture);
+
 void WACClear( float r, float g, float b, float a) {
     glClearColor( r, g, b, a);
     glClear( GL_COLOR_BUFFER_BIT);
 }
 void WACDrawRect( WACFRect rect, WACColor color) {
-    glUseProgram( gNormalProgram);
-    glBindVertexArray( gVao);
-    glBindBuffer( GL_ARRAY_BUFFER, gRectVbo);
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gRectIbo);
-
     WACFRect r2 = transformFRectViaOffset( rect);
     WACFPoint p1, p2, p3, p4;
     p1.x = r2.x;p1.y = r2.y;
     p2.x = r2.x + r2.w;p2.y = r2.y;
     p3.x = r2.x;p3.y = r2.y + r2.h;
     p4.x = p2.x;p4.y = p3.y;
+
+    //struct mat4 offsetMatrix = smat4_translation( )
 
     float dat1[] = {
         p1.x, p1.y, 0, 0, 0, color.r, color.g, color.b, color.a,
@@ -176,18 +180,39 @@ void WACDrawRect( WACFRect rect, WACColor color) {
         3, 2, 1
     };
 
-    configureNormalProgram();
-    glBufferData( GL_ARRAY_BUFFER, sizeof( dat1), dat1, GL_STREAM_DRAW);
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( dat1_indexs), dat1_indexs, GL_STREAM_DRAW);
+    WACDrawElements( dat1, dat1_indexs, 6, 4, &gProjectionMatrix, gWhite);
+}
 
-    float matProjection[] = {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-    glUniformMatrix4fv( glGetUniformLocation( gNormalProgram, "uProjection"), 1, GL_TRUE, (float*)&gProjectionMatrix);
-    glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection) {
+    glUseProgram( gNormalProgram);
+    glBindVertexArray( gVao);
+    glBindBuffer( GL_ARRAY_BUFFER, gGeneralVbo);
+
+    configureNormalProgram();
+    glBufferData( GL_ARRAY_BUFFER, sizeof( WACVertex) * count, vertexs, GL_STREAM_DRAW);
+
+    glUniformMatrix4fv( glGetUniformLocation( gNormalProgram, "uProjection"), 1, GL_TRUE, (float*)projection);
+    glDrawArrays( GL_TRIANGLES, from, count);
+
+    glBindBuffer( GL_ARRAY_BUFFER, 0);
+    glBindVertexArray( 0);
+}
+
+void WACDrawElements( float *vertexs, int *indexs, int index_count, int vertex_count, struct mat4 *projection, WACTexture *texture) {
+    glUseProgram( gNormalProgram);
+    glBindVertexArray( gVao);
+    glBindBuffer( GL_ARRAY_BUFFER, gGeneralVbo);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gGeneralIbo);
+
+    configureNormalProgram();
+    glBufferData( GL_ARRAY_BUFFER, sizeof( WACVertex) * vertex_count, vertexs, GL_STREAM_DRAW);
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( int) * index_count, indexs, GL_STREAM_DRAW);
+
+    glActiveTexture( GL_TEXTURE0);
+    glBindTexture( GL_TEXTURE_2D, [texture handle]);
+
+    glUniformMatrix4fv( glGetUniformLocation( gNormalProgram, "uProjection"), 1, GL_TRUE, (float*)projection);
+    glDrawElements( GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
 
     glBindBuffer( GL_ARRAY_BUFFER, 0);
     glBindVertexArray( 0);
@@ -203,6 +228,7 @@ WACFRect transformFRectViaOffset( WACFRect r) {
 NSMutableDictionary *gCachedImageDictionary;
 
 @implementation WACTexture
+@synthesize handle;
 @synthesize width;
 @synthesize height;
 
@@ -227,29 +253,22 @@ NSMutableDictionary *gCachedImageDictionary;
 }
 - (id)initFromFile:(NSString*)path {
     if( self = [self init]) {
-        // FIXME:使用其他加载文件的方法
-        /*
-        FILE *fp = fopen( [path UTF8String], "rb");
-        fseek( fp, 0, SEEK_END);
-        unsigned long len = ftell( fp);
-        fseek( fp, 0, SEEK_SET);
-        char *data = malloc( len);
-        fread( data, len, 1, fp);
-        fclose( fp);
-        */
         NSData *data = [[NSData alloc] initWithContentsOfFile:path];
-
-        // TODO:使用stbi加载
+        // DONE:使用PanKu加载
+        int w, h, channels;
+        const char *d = PKLoadImageFromData( data, &w, &h, &channels);
+        self = [self initFromRGBAImage:d width:w height:h];
+        PKFreeImageFile( d);
     }
     return self;
 }
 - (id)initFromSvg:(char*)data width:(NSUInteger)width_ height:(NSUInteger)height_ {
     if( self = [self init]) {
-
+        // TODO:加载svg图像
     }
     return self;
 }
-- (id)initFromRGBAImage:(const char*)data width:(NSUInteger)width_ htight:(NSUInteger)height_ {
+- (id)initFromRGBAImage:(const char*)data width:(NSUInteger)width_ height:(NSUInteger)height_ {
     if( self = [self init]) {
         glBindTexture( GL_TEXTURE_2D, handle);
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

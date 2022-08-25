@@ -22,6 +22,7 @@ typedef struct WACFSize {
     NSUInteger width, height;
 }
 
+@property (readonly) uint handle;
 @property (readonly) NSUInteger width;
 @property (readonly) NSUInteger height;
 
@@ -29,7 +30,7 @@ typedef struct WACFSize {
 
 - (id)initFromFile:(NSString*)path;
 - (id)initFromSvg:(char*)data width:(NSUInteger)width_ height:(NSUInteger)height_;
-- (id)initFromRGBAImage:(const char*)data width:(NSUInteger)width_ htight:(NSUInteger)height_;
+- (id)initFromRGBAImage:(const char*)data width:(NSUInteger)width_ height:(NSUInteger)height_;
 
 - (void)drawAt:(WACFPoint)pos;
 - (void)drawAt:(WACFPoint)pos xscale:(float)xscale yscale:(float)yscale;
