@@ -40,6 +40,7 @@ typedef struct WACFSize {
 
 WACFRect WACNewFRect( float x, float y, float w, float h);
 WACColor WACNewColor( float r, float g, float b, float a);
+WACFPoint WACNewFPoint( float x, float y);
 
 void WACRenderSetup();
 void WACRenderCleanup();

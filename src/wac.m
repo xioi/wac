@@ -7,6 +7,7 @@
 #import "gui/WACWindow.h"
 #import "gui/WACRender.h"
 #import "gui/WACLang.h"
+#import <mathc.h>
 
 NSString* WACFormat( NSString *fmt, ...);
 
@@ -25,7 +26,7 @@ int main( int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
+    
     atexit( cleanup);
     const uint width = 800, height = 600;
 

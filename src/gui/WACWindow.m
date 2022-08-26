@@ -1,12 +1,16 @@
 #import "WACWindow.h"
 #import "WACRender.h"
 
+WACTexture *txt;
+float t = 0;
+
 @implementation WACWindow
 @synthesize status;
 
 - (id)init {
     if( self = [super init]) {
         status = WACFreeWindow;
+        txt = [WACTexture imageForPath:@"./tewi.png"];
     }
     return self;
 }
@@ -20,6 +24,7 @@
 }
 - (void)dealloc {
     [cxt release];
+    [txt release];
     [super dealloc];
 }
 
@@ -28,6 +33,8 @@
     WACClear( 1, 1, 1, 1);
     [container draw:cxt];
     WACDrawRect( WACNewFRect( 20, 20, 200, 200), WACNewColor( 1, 0, 0, 1));
+    [txt drawAt:WACNewFPoint( 500, 500) angle:t];
+    t += 1.0 * M_PI / 180;
     WACRenderEnd();
     SDL_GL_SwapWindow( mount);
 }

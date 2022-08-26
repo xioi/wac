@@ -7,9 +7,9 @@
 #define WAC_MAX_DRAWCALLS 4096
 #define WAC_MAX_VERTEXS 4096 * 4
 
-uint gNormalProgram;
+uint gStandardProgram;
 const char
-    *gNormalVsSrc =
+    *gStandardVsSrc =
         "#version 330 core\n"
         "layout (location = 0) in vec3 inPos;\n"
         "layout (location = 1) in vec2 inCoord;\n"
@@ -26,7 +26,7 @@ const char
         "    vs_out.texCoord = inCoord;\n"
         "    vs_out.color = inColor;\n"
         "}\n",
-    *gNormalFsSrc =
+    *gStandardFsSrc =
         "#version 330 core\n"
 
         "out vec4 outFragColor;\n"
@@ -45,13 +45,31 @@ const char
 uint gVao, gRectVbo, gRectIbo, gGeneralVbo, gGeneralIbo;
 WACTexture *gWhite;
 
+uint gSpriteVao, gSpriteVbo, gSpriteIbo;
+
+typedef struct WACVertex {
+    float pos[3];
+    float coord[2];
+    float color[4];
+} WACVertex;
+
+void configureStandardProgram() {
+    glEnableVertexAttribArray( 0);
+    glEnableVertexAttribArray( 1);
+    glEnableVertexAttribArray( 2);
+
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)0);
+    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)(3*sizeof( float)));
+    glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)(5*sizeof( float)));
+}
+
 void WACRenderSetup() {
     uint
         vs = glCreateShader( GL_VERTEX_SHADER),
         fs = glCreateShader( GL_FRAGMENT_SHADER);
     
-    glShaderSource( vs, 1, &gNormalVsSrc, NULL);
-    glShaderSource( fs, 1, &gNormalFsSrc, NULL);
+    glShaderSource( vs, 1, &gStandardVsSrc, NULL);
+    glShaderSource( fs, 1, &gStandardFsSrc, NULL);
     glCompileShader( vs);
     glCompileShader( fs);
     uint p = glCreateProgram();
@@ -61,25 +79,60 @@ void WACRenderSetup() {
 
     glDeleteShader( vs);
     glDeleteShader( fs);
-    gNormalProgram = p;
+    gStandardProgram = p;
 
     glGenVertexArrays( 1, &gVao);
+    glGenVertexArrays( 1, &gSpriteVao);
+
     glGenBuffers( 1, &gRectVbo);
     glGenBuffers( 1, &gRectIbo);
+
     glGenBuffers( 1, &gGeneralVbo);
     glGenBuffers( 1, &gGeneralIbo);
+   
+    glGenBuffers( 1, &gSpriteVbo);
+    glGenBuffers( 1, &gSpriteIbo);
 
     const char white_txt[] = { 255, 255, 255, 255};
-    gWhite = [[WACTexture alloc] initFromRGBAImage:white_txt width:1 htight:1];
+    gWhite = [[WACTexture alloc] initFromRGBAImage:white_txt width:1 height:1];
+
+    float spriteData[] = {
+        0, 0, 0, 0, 1, 1, 1, 1, 1, // higher left
+        1, 0, 0, 1, 1, 1, 1, 1, 1, // higher right
+        0, 1, 0, 0, 0, 1, 1, 1, 1, // lower left
+        1, 1, 0, 1, 0, 1, 1, 1, 1  // lower right
+    };
+
+    int spriteDataIndexs[] = {
+        0, 1, 2,
+        1, 2, 3
+    };
+
+    glBindVertexArray( gSpriteVao);
+    glBindBuffer( GL_ARRAY_BUFFER, gSpriteVbo);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gSpriteIbo);
+
+    configureStandardProgram();
+    glBufferData( GL_ARRAY_BUFFER, sizeof( spriteData), spriteData, GL_STATIC_DRAW);
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( spriteDataIndexs), spriteDataIndexs, GL_STATIC_DRAW);
+
+    glBindBuffer( GL_ARRAY_BUFFER, 0);
+    glBindVertexArray( 0);
 }
 void WACRenderCleanup() {
     [gWhite release];
-    glDeleteProgram( gNormalProgram);
+    glDeleteProgram( gStandardProgram);
     glDeleteVertexArrays( 1, &gVao);
+    glDeleteVertexArrays( 1, &gSpriteVao);
+
     glDeleteBuffers( 1, &gRectVbo);
     glDeleteBuffers( 1, &gRectIbo);
+
     glDeleteBuffers( 1, &gGeneralVbo);
     glDeleteBuffers( 1, &gGeneralIbo);
+
+    glDeleteBuffers( 1, &gSpriteVbo);
+    glDeleteBuffers( 1, &gSpriteIbo);
 }
 
 WACFRect WACNewFRect( float x, float y, float w, float h) {
@@ -92,18 +145,13 @@ WACColor WACNewColor( float r, float g, float b, float a) {
     c.r = r;c.g = g;c.b = b;c.a = a;
     return c;
 }
+WACFPoint WACNewFPoint( float x, float y) {
+    WACFPoint p;
+    p.x = x; p.y = y;
+    return p;
+}
 
 WACFRect transformFRectViaOffset( WACFRect);
-
-typedef struct WACVertex {
-    float pos[3];
-    float coord[2];
-    float color[4];
-} WACVertex;
-
-WACVertex gVertexs[WAC_MAX_VERTEXS];
-int gIndexs[WAC_MAX_VERTEXS];
-uint gVertexCounter = 0, gIndexCounter = 0;
 
 void WACRenderBegin() {
 }
@@ -112,22 +160,6 @@ void WACRenderEnd() { // = WACFrame
 WACFPoint gOffset;
 void WACSetOffset( WACFPoint offset) {
     gOffset = offset;
-}
-
-void addVertex( uint index, float x, float y, float z, float u, float v, WACColor color) {
-    // WARNING: gVertexCounter不会自增，为了使addTriangle更加易用
-    // addTriangle后需要手动增加gVertexCounter
-    WACVertex *vv = &gVertexs[index + gVertexCounter + 1];
-    vv->pos[0] = x;vv->pos[1] = y;vv->pos[2] = z;
-    vv->coord[0] = u;vv->coord[1] = v;
-    vv->color[0] = color.r,vv->color[1] = color.g;vv->color[2] = color.b;vv->color[3] = color.a;
-}
-void addTriangle( uint index1, uint index2, uint index3) {
-    uint off = gVertexCounter + 1;
-    uint first = off + index1, second = off + index2, third = off + index3;
-    gIndexs[gIndexCounter++] = first;
-    gIndexs[gIndexCounter++] = second;
-    gIndexs[gIndexCounter++] = third;
 }
 
 WACFSize gResolution;
@@ -141,32 +173,29 @@ void WACOnViewportResized( int w, int h) {
     gProjectionMatrix = gViewportOrthoMatrix;
 }
 
-void configureNormalProgram() {
-    glEnableVertexAttribArray( 0);
-    glEnableVertexAttribArray( 1);
-    glEnableVertexAttribArray( 2);
-
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)0);
-    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)(3*sizeof( float)));
-    glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)(5*sizeof( float)));
-}
-
 void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection);
 void WACDrawElements( float *vertexs, int *indexs, int index_count, int vertex_count, struct mat4 *projection, WACTexture *texture);
+
+struct mat4 smat4_translate_direct( struct vec3 offset) {
+    struct mat4 o;
+    mat4_zero( (mfloat_t*)&o);
+    o.m11 = o.m22 = o.m33 = o.m44 = 1;
+    return smat4_translate( o, offset);
+}
 
 void WACClear( float r, float g, float b, float a) {
     glClearColor( r, g, b, a);
     glClear( GL_COLOR_BUFFER_BIT);
 }
 void WACDrawRect( WACFRect rect, WACColor color) {
-    WACFRect r2 = transformFRectViaOffset( rect);
     WACFPoint p1, p2, p3, p4;
-    p1.x = r2.x;p1.y = r2.y;
-    p2.x = r2.x + r2.w;p2.y = r2.y;
-    p3.x = r2.x;p3.y = r2.y + r2.h;
+    p1.x = rect.x;p1.y = rect.y;
+    p2.x = rect.x + rect.w;p2.y = rect.y;
+    p3.x = rect.x;p3.y = rect.y + rect.h;
     p4.x = p2.x;p4.y = p3.y;
 
-    //struct mat4 offsetMatrix = smat4_translation( )
+    struct mat4 offsetMatrix = smat4_translate_direct( svec3( gOffset.x, gOffset.y, 0)), b;
+    mat4_multiply( (mfloat_t*)&b, (mfloat_t*)&gProjectionMatrix, (mfloat_t*)&offsetMatrix);
 
     float dat1[] = {
         p1.x, p1.y, 0, 0, 0, color.r, color.g, color.b, color.a,
@@ -180,18 +209,18 @@ void WACDrawRect( WACFRect rect, WACColor color) {
         3, 2, 1
     };
 
-    WACDrawElements( dat1, dat1_indexs, 6, 4, &gProjectionMatrix, gWhite);
+    WACDrawElements( dat1, dat1_indexs, 6, 4, &b, gWhite);
 }
 
 void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection) {
-    glUseProgram( gNormalProgram);
+    glUseProgram( gStandardProgram);
     glBindVertexArray( gVao);
     glBindBuffer( GL_ARRAY_BUFFER, gGeneralVbo);
 
-    configureNormalProgram();
+    configureStandardProgram();
     glBufferData( GL_ARRAY_BUFFER, sizeof( WACVertex) * count, vertexs, GL_STREAM_DRAW);
 
-    glUniformMatrix4fv( glGetUniformLocation( gNormalProgram, "uProjection"), 1, GL_TRUE, (float*)projection);
+    glUniformMatrix4fv( glGetUniformLocation( gStandardProgram, "uProjection"), 1, GL_TRUE, (float*)projection);
     glDrawArrays( GL_TRIANGLES, from, count);
 
     glBindBuffer( GL_ARRAY_BUFFER, 0);
@@ -199,19 +228,19 @@ void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection
 }
 
 void WACDrawElements( float *vertexs, int *indexs, int index_count, int vertex_count, struct mat4 *projection, WACTexture *texture) {
-    glUseProgram( gNormalProgram);
+    glUseProgram( gStandardProgram);
     glBindVertexArray( gVao);
     glBindBuffer( GL_ARRAY_BUFFER, gGeneralVbo);
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gGeneralIbo);
 
-    configureNormalProgram();
+    configureStandardProgram();
     glBufferData( GL_ARRAY_BUFFER, sizeof( WACVertex) * vertex_count, vertexs, GL_STREAM_DRAW);
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( int) * index_count, indexs, GL_STREAM_DRAW);
 
     glActiveTexture( GL_TEXTURE0);
     glBindTexture( GL_TEXTURE_2D, [texture handle]);
 
-    glUniformMatrix4fv( glGetUniformLocation( gNormalProgram, "uProjection"), 1, GL_TRUE, (float*)projection);
+    glUniformMatrix4fv( glGetUniformLocation( gStandardProgram, "uProjection"), 1, GL_TRUE, (float*)projection);
     glDrawElements( GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
 
     glBindBuffer( GL_ARRAY_BUFFER, 0);
@@ -274,6 +303,7 @@ NSMutableDictionary *gCachedImageDictionary;
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap( GL_TEXTURE_2D);
         glBindTexture( GL_TEXTURE_2D, 0);
 
         width = width_;
@@ -296,6 +326,25 @@ NSMutableDictionary *gCachedImageDictionary;
     [self drawAt:pos xscale:1 yscale:1 angle:angle];
 }
 - (void)drawAt:(WACFPoint)pos xscale:(float)xscale yscale:(float)yscale angle:(float)angle {
+    glUseProgram( gStandardProgram);
+    glBindVertexArray( gSpriteVao);
 
+    glActiveTexture( GL_TEXTURE0);
+    glBindTexture( GL_TEXTURE_2D, [self handle]);
+
+    float xs = [self width] * xscale, ys = [self height] * yscale;
+
+    struct mat4 mat;
+    mat4_zero( (mfloat_t*)&mat);
+    mat.m11 = mat.m22 = mat.m33 = mat.m44 = 1;
+    mat = smat4_scale( mat, svec3( xs, ys, 1));
+    mat = smat4_multiply( smat4_rotation_axis( svec3( 0, 0, 1), angle), mat);
+    mat = smat4_translate( mat, svec3( pos.x, pos.y, 0));
+    mat = smat4_multiply( gProjectionMatrix, mat);
+
+    glUniformMatrix4fv( glGetUniformLocation( gStandardProgram, "uProjection"), 1, GL_TRUE, (float*)&mat);
+    glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray( 0);
 }
 @end
