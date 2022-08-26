@@ -14,6 +14,7 @@ You needs vcpkg, and install following packages:
 vcpkg install sdl2
 vcpkg install freetype
 vcpkg install libyaml
+vcpkg install harfbuzz
 ```
 <!--Then if you're using MS Windows, you also have to install GNUStep.-->
 then run in the project's root:
@@ -29,6 +30,7 @@ make
 vcpkg install sdl2
 vcpkg install freetype
 vcpkg install libyaml
+vcpkg install harfbuzz
 ```
 <!--Then if you're using MS Windows, you also have to install GNUStep.-->
 接着在项目根目录运行：
@@ -38,3 +40,11 @@ cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE=你到vcpkg根目录的路径/scripts/buildsystems/vcpkg.cmake
 make
 ```
+## Image assert formats' requirements 图像格式要求
+Images can be png/jpg/tga and so on, if stb_image supports them.
+And it has to be 4-channels, 3 of RGB and 1 of Alpha, you can add a
+Alpha channel via some image editing software such as GIMP and Photoshop.
+
+图像可以是png、jpg或者tga之类，只要stb_image库支持的就行。
+图片只能为有四通道的RGBA图像，
+你可以用像是GIMP或者Photoshop之类的图像编辑软件来加一个Alpha通道。
