@@ -20,6 +20,7 @@ typedef struct WACFSize {
     @private
     uint handle;
     NSUInteger width, height;
+    BOOL complete;
 }
 
 @property (readonly) uint handle;
@@ -33,8 +34,10 @@ typedef struct WACFSize {
 - (id)initFromRGBAImage:(const char*)data width:(NSUInteger)width_ height:(NSUInteger)height_;
 
 - (void)drawAt:(WACFPoint)pos;
+- (void)drawAt:(WACFPoint)pos width:(float)ww height:(float)hh;
 - (void)drawAt:(WACFPoint)pos xscale:(float)xscale yscale:(float)yscale;
 - (void)drawAt:(WACFPoint)pos angle:(float)angle;
+- (void)drawAt:(WACFPoint)pos width:(float)ww height:(float)hh angle:(float)angle;
 - (void)drawAt:(WACFPoint)pos xscale:(float)xscale yscale:(float)yscale angle:(float)angle;
 @end
 

@@ -5,11 +5,13 @@ WACTexture *txt;
 float t = 0;
 
 @implementation WACWindow
-@synthesize status;
+@synthesize state;
+@synthesize width;
+@synthesize height;
 
 - (id)init {
     if( self = [super init]) {
-        status = WACFreeWindow;
+        state = WACFreeWindow;
         txt = [WACTexture imageForPath:@"./tewi.png"];
     }
     return self;
@@ -18,12 +20,12 @@ float t = 0;
 - (id)initFrom:(SDL_Window*)window {
     if( self = [self init]) {
         mount = window;
-        cxt = [[WACDrawContext alloc] initFromWindow:self];
+        ctx = [[WACDrawContext alloc] initFromWindow:self];
     }
     return self;
 }
 - (void)dealloc {
-    [cxt release];
+    [ctx release];
     [txt release];
     [super dealloc];
 }
@@ -31,9 +33,9 @@ float t = 0;
 - (void)draw {
     WACRenderBegin();
     WACClear( 1, 1, 1, 1);
-    [container draw:cxt];
+    [container draw:ctx];
     WACDrawRect( WACNewFRect( 20, 20, 200, 200), WACNewColor( 1, 0, 0, 1));
-    [txt drawAt:WACNewFPoint( 500, 500) angle:t];
+    [txt drawAt:WACNewFPoint( 200, 200) width:400 height:400 angle:t];
     t += 1.0 * M_PI / 180;
     WACRenderEnd();
     SDL_GL_SwapWindow( mount);
@@ -69,24 +71,42 @@ float t = 0;
 
     return YES;
 }
+
+- (void)updateWindowStatus {
+    SDL_GetWindowSize( mount, &width, &height);
+}
 @end
 
 @implementation WACView
-- (void)draw:(WACDrawContext*)cxt {
+- (void)draw:(WACDrawContext*)ctx {
     // default method
 }
 @end
 
+@implementation WACSingleViewContainer
+- (id)initWithParent:(WACView*)parent_ {
+    if( self = [self init]) {
+        parent = parent_;
+    }
+    return self;
+}
+- (void)draw:(WACDrawContext*)ctx {
+    //[ctx drawFilledRect:]
+}
+@end
+
 @implementation WACDrawContext
+@synthesize area;
+
 - (id)initFromWindow:(WACWindow*)wnd {
     if( self = [self init]) {
         self->target = wnd;
     }
     return self;
 }
-- (id)initFromContext:(WACDrawContext*)cxt {
+- (id)initFromContext:(WACDrawContext*)ctx {
     if( self = [self init]) {
-        self->target = cxt->target;
+        self->target = ctx->target;
     }
     return self;
 }

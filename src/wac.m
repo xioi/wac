@@ -16,7 +16,6 @@ void cleanup() {
     SDL_Quit();
 }
 
-//void setup_cocoa();
 WACLangMgr *gLangMgr;
 
 int main( int argc, char **argv) {
@@ -26,7 +25,7 @@ int main( int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    
+
     atexit( cleanup);
     const uint width = 800, height = 600;
 
@@ -42,13 +41,6 @@ int main( int argc, char **argv) {
     }
 
     gLangMgr = [[[WACLangMgr alloc] init] autorelease];
-    WACLanguagePackage *pak = [gLangMgr getPackage:@"zh-cn"];
-    [pak retain];
-    NSLog( @"Language Package[%@] by %@", [pak identity], [pak author]);
-    WACLangText *langText = [WACLangText textFromString:@"AAA$wac.ui.file.file$BBBB,ALSO DISPLAYS\\$ABCABC\\$"];
-    NSLog( @"str is:%@", [langText value]);
-    [langText release];
-    [pak release];
     
     glEnable( GL_BLEND);
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
@@ -58,16 +50,13 @@ int main( int argc, char **argv) {
     WACRenderSetup();
     WACOnViewportResized( width, height);
 
-    //setup_cocoa();
-
     SDL_Event e;
     while( YES) {
         while( SDL_PollEvent( &e)) {
             if( ![wacWindow processEvent:&e]) goto end;
         }
-        int w, h;
-        SDL_GetWindowSize( wnd, &w, &h);
-        WACOnViewportResized( w, h);
+        [wacWindow updateWindowStatus];
+        WACOnViewportResized( [wacWindow width], [wacWindow height]);
         [wacWindow draw];
         SDL_Delay( 33);
     }

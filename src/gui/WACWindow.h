@@ -6,7 +6,7 @@
 - (NSString*)remake;
 @end
 
-typedef NS_ENUM( NSUInteger, WACWindowStatus) {
+typedef NS_ENUM( NSUInteger, WACWindowState) {
     WACFreeWindow = 0,
     WACFocusingWindow
 };
@@ -43,9 +43,12 @@ typedef struct WACKey {
 @interface WACDrawContext : NSObject {
     @private
     WACWindow *target;
+    WACFRect area;
 }
+@property (readwrite) WACFRect area;
+
 - (id)initFromWindow:(WACWindow*)wnd;
-- (id)initFromContext:(WACDrawContext*)cxt;
+- (id)initFromContext:(WACDrawContext*)ctx;
 - (instancetype)clone;
 
 - (void)setOffset:(WACFPoint)offset;
@@ -59,27 +62,33 @@ typedef struct WACKey {
     uint x, y;
 }
 
-- (void)draw:(WACDrawContext*)cxt;
+- (void)draw:(WACDrawContext*)ctx;
 @end
 
 @interface WACSingleViewContainer : WACView {
     @private
-    WACView *view;
+    WACView *parent;
 }
+- (id)initWithParent:(WACView*)parent;
 @end
 
 @interface WACWindow : NSObject {
     @private
     SDL_Window *mount;
     WACSingleViewContainer *container;
-    WACWindowStatus status;
-    WACDrawContext *cxt;
+    WACWindowState state;
+    WACDrawContext *ctx;
+
+    int wdith, height;
 }
 
-@property (readwrite) WACWindowStatus status;
+@property (readwrite) WACWindowState state;
+@property (readonly) int width;
+@property (readonly) int height;
 
 - (id)initFrom:(SDL_Window*)window;
 - (void)draw;
 - (BOOL)processEvent:(SDL_Event*)e;
+- (void)updateWindowStatus;
 
 @end

@@ -43,7 +43,7 @@ const char
         "}\n";
 
 uint gVao, gRectVbo, gRectIbo, gGeneralVbo, gGeneralIbo;
-WACTexture *gWhite;
+WACTexture *gWhite, *gMissing;
 
 uint gSpriteVao, gSpriteVbo, gSpriteIbo;
 
@@ -93,8 +93,13 @@ void WACRenderSetup() {
     glGenBuffers( 1, &gSpriteVbo);
     glGenBuffers( 1, &gSpriteIbo);
 
-    const char white_txt[] = { 255, 255, 255, 255};
+    const char
+        white_txt[] = { 255, 255, 255, 255},
+        missing_txt[] = {
+            188, 0, 188, 255,
+        };  // pure purple
     gWhite = [[WACTexture alloc] initFromRGBAImage:white_txt width:1 height:1];
+    gMissing = [[WACTexture alloc] initFromRGBAImage:missing_txt width:1 height:1];
 
     float spriteData[] = {
         0, 0, 0, 0, 1, 1, 1, 1, 1, // higher left
@@ -121,6 +126,7 @@ void WACRenderSetup() {
 }
 void WACRenderCleanup() {
     [gWhite release];
+    [gMissing release];
     glDeleteProgram( gStandardProgram);
     glDeleteVertexArrays( 1, &gVao);
     glDeleteVertexArrays( 1, &gSpriteVao);
@@ -168,9 +174,9 @@ void WACOnViewportResized( int w, int h) {
     gResolution.w = w;
     gResolution.h = h;
 
-    glViewport( 0, 0, w, h);
+    glViewport( 0, 0, w, h); // update gl viewport
     mat4_ortho( (mfloat_t*)&gViewportOrthoMatrix, 0, w, h, 0, -10.0f, 10.0f);
-    gProjectionMatrix = gViewportOrthoMatrix;
+    gProjectionMatrix = gViewportOrthoMatrix; // update projection matrix
 }
 
 void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection);
@@ -262,27 +268,30 @@ NSMutableDictionary *gCachedImageDictionary;
 @synthesize height;
 
 + (instancetype)imageForPath:(NSString*)path {
-    if( gCachedImageDictionary == NULL) {
-        gCachedImageDictionary = [[NSMutableDictionary alloc] init];
-    }
+    //if( gCachedImageDictionary == NULL) {
+    //    gCachedImageDictionary = [[NSMutableDictionary alloc] init];
+    //}
 
-    WACTexture *txt = [gCachedImageDictionary valueForKey:path];
-    if( txt != NULL) {
-        return txt;
-    }
+    WACTexture *txt;
+    //txt = [gCachedImageDictionary valueForKey:path];
+    //if( txt != NULL) {
+    //    return txt;
+    //}
     txt = [[WACTexture alloc] initFromFile:path];
-    [gCachedImageDictionary setValue:txt forKey:path];
+    //[gCachedImageDictionary setValue:txt forKey:path];
     return txt;
 }
 - (id)init {
     if( self = [super init]) {
         glGenTextures( 1, &handle);
+        complete = NO;
     }
     return self;
 }
 - (id)initFromFile:(NSString*)path {
     if( self = [self init]) {
         NSData *data = [[NSData alloc] initWithContentsOfFile:path];
+        if( [data bytes] == NULL) return self; // error
         // DONE:使用PanKu加载
         int w, h, channels;
         const char *d = PKLoadImageFromData( data, &w, &h, &channels);
@@ -308,6 +317,8 @@ NSMutableDictionary *gCachedImageDictionary;
 
         width = width_;
         height = height_;
+
+        complete = YES;
     }
     return self;
 }
@@ -322,10 +333,30 @@ NSMutableDictionary *gCachedImageDictionary;
 - (void)drawAt:(WACFPoint)pos xscale:(float)xscale yscale:(float)yscale {
     [self drawAt:pos xscale:xscale yscale:yscale angle:0];
 }
+- (void)drawAt:(WACFPoint)pos width:(float)ww height:(float)hh {
+    [self drawAt:pos width:ww height:hh angle:0];
+}
 - (void)drawAt:(WACFPoint)pos angle:(float)angle {
     [self drawAt:pos xscale:1 yscale:1 angle:angle];
 }
+- (void)drawAt:(WACFPoint)pos width:(float)ww height:(float)hh angle:(float)angle {
+    int w, h;
+    float xs, ys;
+    if( !complete) {
+        xs = ww;
+        ys = hh;
+    }else {
+        xs = ww / [self width];
+        ys = hh / [self height];
+    }
+    [self drawAt:pos xscale:xs yscale:ys angle:angle];
+}
 - (void)drawAt:(WACFPoint)pos xscale:(float)xscale yscale:(float)yscale angle:(float)angle {
+    if( !complete) {
+        [gMissing drawAt:pos xscale:xscale yscale:yscale angle:angle];
+        return;
+    }
+
     glUseProgram( gStandardProgram);
     glBindVertexArray( gSpriteVao);
 
