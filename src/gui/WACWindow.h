@@ -56,6 +56,24 @@ typedef struct WACKey {
 - (void)drawImage:(WACTexture*)txt at:(WACFPoint)pos;
 @end
 
+@interface WACComponent : NSObject {
+    @protected
+    WACFRect bounds;
+}
+- (WACFSize)perferredSize;
+- (void)setLocation:(WACFPoint)location;
+- (void)setSize:(WACFSize)size;
+- (void)setBounds:(WACFRect)bounds;
+- (WACFRect)bounds;
+- (void)draw:(WACDrawContext*)ctx;
+@end
+
+@interface WACContainer : WACComponent
+- (void)addComponent:(WACComponent*)component;
+- (void)removeComponent:(WACComponent*)component;
+- (NSUInteger)componentCount;
+@end
+
 @interface WACView : NSObject {
     @protected
     uint width, height;

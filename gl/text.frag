@@ -10,5 +10,8 @@ uniform sampler2D uTextTexture;
 uniform vec4 uBlendColor = vec4( 1);
 
 void main() {
-    outFragColor = uBlendColor * texture( uTextTexture, fs_in.texCoord);
+    vec4 textColor = uBlendColor;
+    textColor.a = texture( uTextTexture, fs_in.texCoord).r;
+    
+    outFragColor = uBlendColor * textColor;
 }

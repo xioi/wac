@@ -18,7 +18,7 @@ add_compile_options( -g)
 
 find_package( SDL2 CONFIG REQUIRED)
 find_package( freetype CONFIG REQUIRED)
+find_package( harfbuzz CONFIG REQUIRED)
 find_package( yaml CONFIG REQUIRED)
-#find_package( harfbuzz CONFIG REQUIRED)
 
 add_subdirectory( src)

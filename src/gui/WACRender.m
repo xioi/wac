@@ -2,12 +2,13 @@
 #import "../glad/glad.h"
 #import <plutosvg.h>
 #import <PKLoader.h>
+#import <PKFont.h>
 #import <mathc.h>
 
 #define WAC_MAX_DRAWCALLS 4096
 #define WAC_MAX_VERTEXS 4096 * 4
 
-uint gStandardProgram;
+uint gStandardProgram, gTextProgram;
 const char
     *gStandardVsSrc =
         "#version 330 core\n"
@@ -40,7 +41,42 @@ const char
 
         "void main() {\n"
         "    outFragColor = fs_in.color * texture( uTexture, fs_in.texCoord);\n"
+        "}\n",
+    *gTextVsSrc =
+        "#version 330 core\n"
+
+        "layout (location = 0) in vec3 inPos;\n"
+        "layout (location = 1) in vec2 inCoord;\n"
+
+        "uniform mat4 uProjection;\n"
+
+        "out VS_OUT {\n"
+        "    vec2 texCoord;\n"
+        "} vs_out;\n"
+
+        "void main() {\n"
+        "    gl_Position = vec4( inPos, 1.0f) * uProjection;\n"
+        "    vs_out.texCoord = inCoord;\n"
+        "}\n",
+    *gTextFsSrc =
+        "#version 330 core\n"
+
+        "out vec4 outFragColor;\n"
+
+        "in VS_OUT {\n"
+        "    vec2 texCoord;\n"
+        "} fs_in;\n"
+
+        "uniform sampler2D uTextTexture;\n"
+        "uniform vec4 uBlendColor = vec4( 1);\n"
+
+        "void main() {\n"
+        "    vec4 textColor = uBlendColor;\n"
+        "    textColor.a = texture( uTextTexture, fs_in.texCoord).r;\n"
+            
+        "    outFragColor = uBlendColor * textColor;\n"
         "}\n";
+
 
 uint gVao, gRectVbo, gRectIbo, gGeneralVbo, gGeneralIbo;
 WACTexture *gWhite, *gMissing;
@@ -63,13 +99,13 @@ void configureStandardProgram() {
     glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)(5*sizeof( float)));
 }
 
-void WACRenderSetup() {
+uint compileProgram( const char *vssrc, const char *fssrc) {
     uint
         vs = glCreateShader( GL_VERTEX_SHADER),
         fs = glCreateShader( GL_FRAGMENT_SHADER);
     
-    glShaderSource( vs, 1, &gStandardVsSrc, NULL);
-    glShaderSource( fs, 1, &gStandardFsSrc, NULL);
+    glShaderSource( vs, 1, &vssrc, NULL);
+    glShaderSource( fs, 1, &fssrc, NULL);
     glCompileShader( vs);
     glCompileShader( fs);
     uint p = glCreateProgram();
@@ -79,7 +115,12 @@ void WACRenderSetup() {
 
     glDeleteShader( vs);
     glDeleteShader( fs);
-    gStandardProgram = p;
+    return p;
+}
+
+void WACRenderSetup() {
+    gStandardProgram = compileProgram( gStandardVsSrc, gStandardFsSrc);
+    gTextProgram = compileProgram( gTextVsSrc, gTextFsSrc);
 
     glGenVertexArrays( 1, &gVao);
     glGenVertexArrays( 1, &gSpriteVao);
@@ -155,6 +196,11 @@ WACFPoint WACNewFPoint( float x, float y) {
     WACFPoint p;
     p.x = x; p.y = y;
     return p;
+}
+WACFSize WACNewFSize( float w, float h) {
+    WACFSize s;
+    s.w = w; s.h = h;
+    return s;
 }
 
 WACFRect transformFRectViaOffset( WACFRect);

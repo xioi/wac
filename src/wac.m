@@ -1,6 +1,5 @@
 #import <Foundation/Foundation.h>
 #import <SDL.h>
-#import <SDL_syswm.h>
 #import <stdarg.h>
 #import "glad/glad.h"
 #import "gui/nfd.h"
@@ -8,13 +7,9 @@
 #import "gui/WACRender.h"
 #import "gui/WACLang.h"
 #import <mathc.h>
+#import <string.h>
 
 NSString* WACFormat( NSString *fmt, ...);
-
-void cleanup() {
-    WACRenderCleanup();
-    SDL_Quit();
-}
 
 WACLangMgr *gLangMgr;
 
@@ -26,7 +21,6 @@ int main( int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
-    atexit( cleanup);
     const uint width = 800, height = 600;
 
     SDL_Window *wnd = SDL_CreateWindow( "Waffle & Cookie",
@@ -43,6 +37,7 @@ int main( int argc, char **argv) {
     gLangMgr = [[[WACLangMgr alloc] init] autorelease];
     
     glEnable( GL_BLEND);
+    glDisable( GL_DEPTH_TEST);
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -61,7 +56,8 @@ int main( int argc, char **argv) {
         SDL_Delay( 33);
     }
 end:
-    //SDL_Quit();
+    WACRenderCleanup();
+    SDL_Quit();
     //[pool release];
     return 0;
 }

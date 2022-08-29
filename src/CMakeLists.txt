@@ -14,11 +14,12 @@ add_library( panku STATIC "")
 target_sources(
     panku PRIVATE
     "./pk/PKException.m" "./pk/PKLoader.m"
-    "./pk/mathc.c"
+    "./pk/PKFont.m" "./pk/mathc.c"
     "./pk/PKException.h" "./pk/PKLoader.h"
-    "./pk/mathc.h"
+    "./pk/PKFont.h" "./pk/mathc.h"
 )
 target_include_directories( panku PUBLIC "./pk")
+target_link_libraries( panku freetype harfbuzz harfbuzz::harfbuzz)
 
 add_executable( wac "")
 target_sources( wac PRIVATE
@@ -28,7 +29,7 @@ target_sources( wac PRIVATE
 
 target_link_libraries( wac PRIVATE
     SDL2::SDL2 SDL2::SDL2main SDL2::SDL2-static
-    freetype plutosvg yaml panku)
+    freetype plutosvg yaml panku harfbuzz harfbuzz::harfbuzz)
 
 target_compile_options( wac PRIVATE -fconstant-string-class=NSConstantString)
 
