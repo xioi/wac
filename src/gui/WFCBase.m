@@ -1,16 +1,16 @@
-#import "WACWindow.h"
-#import "WACLang.h"
+#import "WFCWindow.h"
+#import "WFCLang.h"
 
-@implementation WACText
+@implementation WFCText
 - (NSString*)value {    // default implementation
-    return @"{Default text in WACBase.m:6}";
+    return @"{Default text in WFCBase.m:6}";
 }
 - (NSString*)remake {
     return [self value];
 }
 @end
 
-@implementation WACConstantText
+@implementation WFCConstantText
 - (id)initFromString:(NSString*)constant_ {
     if( self = [self init]) {
         self->constant = constant_;
@@ -18,7 +18,7 @@
     return self;
 }
 + (instancetype)textFromString:(NSString*)constant {
-    id c = [WACConstantText alloc];
+    id c = [WFCConstantText alloc];
     c = [c initFromString:constant];
     return c;
 }
@@ -28,9 +28,9 @@
 }
 @end
 
-// @"AAA$wac.ui.file$BBBB$wac.ui.edit$CCC"
+// @"AAA$WFC.ui.file$BBBB$WFC.ui.edit$CCC"
 // -> @"AAAFileBBBBEditCCC"
-@implementation WACLangText
+@implementation WFCLangText
 - (id)initFromString:(NSString*)lang_ {
     if( self = [self init]) {
         self->text = [self parse:lang_];
@@ -39,13 +39,13 @@
     return self;
 }
 + (instancetype)textFromString:(NSString*)lang {
-    id l = [WACLangText alloc];
+    id l = [WFCLangText alloc];
     l = [l initFromString:lang];
     return l;
 }
 
 - (NSString*)langValue:(NSString*)item {
-    WACLangMgr *mgr = WACLangMgrContext();
+    WFCLangMgr *mgr = WFCLangMgrContext();
     NSString *v = [mgr valueOf:[NSString stringWithFormat:@"content.%@", item]];
     if( v != NULL) return v;
     return [NSString stringWithFormat:@"[UNKNOWN ENTRY:%@]", item];

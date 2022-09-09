@@ -1,7 +1,7 @@
-#import "WACLang.h"
+#import "WFCLang.h"
 #import <yaml.h>
 
-@implementation WACLanguagePackage
+@implementation WFCLanguagePackage
 @synthesize identity;
 @synthesize author;
 
@@ -24,7 +24,7 @@
 }
 @end
 
-@implementation WACLangMgr
+@implementation WFCLangMgr
 - (id)init {
     if( self = [super init]) {
         packages = [NSMutableDictionary new];
@@ -41,7 +41,7 @@
 - (void)loadLanguageFile:(NSString*)name { // load language file
     [[self getPackage:name] release]; // release the old one
 
-    id pak = [WACLanguagePackage new];
+    id pak = [WFCLanguagePackage new];
     [packages setObject:pak forKey:name];
     NSString *path = [NSString stringWithFormat:@"./lang/%@.yml", name];
 
@@ -118,15 +118,15 @@ error:
 - (NSString*)valueOf:(NSString*)identity {
     return [current valueOf:identity];
 }
-- (WACLanguagePackage*)getPackage:(NSString*)language {
+- (WFCLanguagePackage*)getPackage:(NSString*)language {
     return [packages valueForKey:language];
 }
 @end
 
-static WACLangMgr *gContext = NULL;
-WACLangMgr* WACLangMgrContext() { // 单例
+static WFCLangMgr *gContext = NULL;
+WFCLangMgr* WFCLangMgrContext() { // 单例
     if( gContext == NULL) {
-        gContext = [WACLangMgr new];
+        gContext = [WFCLangMgr new];
         //[gContext loadLanguageFile:@"zh-cn"];
     }
     return gContext;

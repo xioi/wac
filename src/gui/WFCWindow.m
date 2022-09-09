@@ -1,5 +1,5 @@
-#import "WACWindow.h"
-#import "WACRender.h"
+#import "WFCWindow.h"
+#import "WFCRender.h"
 
 #import <ft2build.h>
 #import FT_FREETYPE_H
@@ -8,32 +8,32 @@
 #import <../glad/glad.h>
 #import <mathc.h>
 
-WACTexture *txt;
+WFCTexture *txt;
 float t = 0;
 
-@implementation WACComponent
-- (WACFSize)perferredSize {
-    return WACNewFSize( 1, 1);
+@implementation WFCComponent
+- (WFCFSize)perferredSize {
+    return WFCNewFSize( 1, 1);
 }
 
-- (void)setLocation:(WACFPoint)location {
-    [self setBounds:WACNewFRect( location.x, location.y, bounds.w, bounds.h)];
+- (void)setLocation:(WFCFPoint)location {
+    [self setBounds:WFCNewFRect( location.x, location.y, bounds.w, bounds.h)];
 }
 
-- (void)setSize:(WACFSize)size {
-    [self setBounds:WACNewFRect( bounds.x, bounds.y, size.w, size.h)];
+- (void)setSize:(WFCFSize)size {
+    [self setBounds:WFCNewFRect( bounds.x, bounds.y, size.w, size.h)];
 }
 
-- (void)setBounds:(WACFRect)bounds_ {
+- (void)setBounds:(WFCFRect)bounds_ {
     bounds = bounds_;
 }
 
-- (WACFRect)bounds {
+- (WFCFRect)bounds {
     return bounds;
 }
 
-- (void)draw:(WACDrawContext*)ctx {
-    [ctx drawFilledRect:bounds color:WACNewColor( 0.7, 0, 0.7, 1)];
+- (void)draw:(WFCDrawContext*)ctx {
+    [ctx drawFilledRect:bounds color:WFCNewColor( 0.7, 0, 0.7, 1)];
 }
 @end
 
@@ -60,29 +60,31 @@ static uint tvao, tbs[2];
 const char text[] =
     "I can eat glass and it doesn't hurt me.\n"
     "我能吞下玻璃而不伤身体。\n"
+    "我能吞下玻璃而不傷身體。\n"
     "私はガラスを食べられます。それは私を傷つけません。\n"
-    "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요\n"
-    "Я могу есть стекло, оно мне не вредит.\n"
-    "ຂອ້ຍກິນແກ້ວໄດ້ໂດຍທີ່ມັນບໍ່ໄດ້ເຮັດໃຫ້ຂອ້ຍເຈັບ.\n"
-    "میں کانچ کھا سکتا ہوں اور مجھے تکلیف نہیں ہوتی\n";
+    "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요\n";       // CJK
+    //"Я могу есть стекло, оно мне не вредит.\n"
+    //"ຂອ້ຍກິນແກ້ວໄດ້ໂດຍທີ່ມັນບໍ່ໄດ້ເຮັດໃຫ້ຂອ້ຍເຈັບ.\n";
+    //"Tôi có thể ăn thủy tinh mà không hại gì.\n";
 NSString *text2;
 
 extern struct mat4 gProjectionMatrix;
 
-@implementation WACWindow
+@implementation WFCWindow
 @synthesize state;
 @synthesize width;
 @synthesize height;
 
 - (id)init {
     if( self = [super init]) {
-        state = WACFreeWindow;
-        txt = [WACTexture imageForPath:@"./tewi.png"];
+        state = WFCFreeWindow;
+        txt = [WFCTexture imageForPath:@"./tewi.png"];
 
         assert( !FT_Init_FreeType( &ft_library));
 
         assert( !FT_New_Face( ft_library, "./Arial Unicode.ttf", 0, &ft_face));
         assert( !FT_Set_Char_Size( ft_face, 0, 32, 0, 0));
+        assert( !FT_Set_Pixel_Sizes( ft_face, 0, 1));
 
         text2 = [NSString stringWithUTF8String:text];
         buf = hb_buffer_create();
@@ -134,7 +136,7 @@ extern struct mat4 gProjectionMatrix;
 - (id)initFrom:(SDL_Window*)window {
     if( self = [self init]) {
         mount = window;
-        ctx = [[WACDrawContext alloc] initFromWindow:self];
+        ctx = [[WFCDrawContext alloc] initFromWindow:self];
     }
     return self;
 }
@@ -155,22 +157,23 @@ extern struct mat4 gProjectionMatrix;
 }
 
 - (void)draw {
-    WACRenderBegin();
-    WACClear( 1, 1, 1, 1);
+    WFCRenderBegin();
+    WFCClear( 1, 1, 1, 1);
     [container draw:ctx];
-    WACDrawRect( WACNewFRect( 20, 20, 200, 200), WACNewColor( 1, 0, 0, 1));
-    //[txt drawAt:WACNewFPoint( 200, 200) width:400 height:400 angle:t];
-    //t += 1.0 * M_PI / 180;
+    WFCDrawRect( WFCNewFRect( 20, 20, 200, 200), WFCNewColor( 1, 0, 0, 1));
+    [txt drawAt:WFCNewFPoint( 240, 20) width:200 height:200 angle:t];
+    t += 1.0 * M_PI / 180;
 
     uint glyph_count;
     hb_glyph_info_t *g_info = hb_buffer_get_glyph_infos( buf, &glyph_count);
     hb_glyph_position_t *g_pos = hb_buffer_get_glyph_positions( buf, &glyph_count);
 
-    hb_position_t tx = 0, ty = 300;
+    hb_position_t sx = 20, sy = 300;
+    hb_position_t tx = sx, ty = sy;
     for( uint i=0;i<glyph_count;++i) {
         if( [text2 characterAtIndex:i] == '\n') {
             ty += 32;
-            tx = 0;
+            tx = sx;
             continue;
         }
 
@@ -224,7 +227,7 @@ extern struct mat4 gProjectionMatrix;
         //ty += yadvance;
     }
 
-    WACRenderEnd();
+    WFCRenderEnd();
     SDL_GL_SwapWindow( mount);
 }
 - (BOOL)processEvent:(SDL_Event*)e {
@@ -235,7 +238,7 @@ extern struct mat4 gProjectionMatrix;
             return NO;
         case SDL_WINDOWEVENT_SIZE_CHANGED: { // FIXME: 事件无效
             //int w = e->window.data1, h = e->window.data2;
-            //WACOnViewportResized( w, h);
+            //WFCOnViewportResized( w, h);
             break;
         }
         case SDL_MOUSEBUTTONDOWN: { // 处理鼠标按下事件
@@ -264,50 +267,50 @@ extern struct mat4 gProjectionMatrix;
 }
 @end
 
-@implementation WACView
-- (void)draw:(WACDrawContext*)ctx {
+@implementation WFCView
+- (void)draw:(WFCDrawContext*)ctx {
     // default method
 }
 @end
 
-@implementation WACSingleViewContainer
-- (id)initWithParent:(WACView*)parent_ {
+@implementation WFCSingleViewContainer
+- (id)initWithParent:(WFCView*)parent_ {
     if( self = [self init]) {
         parent = parent_;
     }
     return self;
 }
-- (void)draw:(WACDrawContext*)ctx {
+- (void)draw:(WFCDrawContext*)ctx {
     //[ctx drawFilledRect:]
 }
 @end
 
-@implementation WACDrawContext
+@implementation WFCDrawContext
 @synthesize area;
 
-- (id)initFromWindow:(WACWindow*)wnd {
+- (id)initFromWindow:(WFCWindow*)wnd {
     if( self = [self init]) {
         self->target = wnd;
     }
     return self;
 }
-- (id)initFromContext:(WACDrawContext*)ctx {
+- (id)initFromContext:(WFCDrawContext*)ctx {
     if( self = [self init]) {
         self->target = ctx->target;
     }
     return self;
 }
 - (instancetype)clone {
-    return [[WACDrawContext alloc] initFromContext:self];
+    return [[WFCDrawContext alloc] initFromContext:self];
 }
 
-- (void)setOffset:(WACFPoint)offset {
-    WACSetOffset( offset);
+- (void)setOffset:(WFCFPoint)offset {
+    WFCSetOffset( offset);
 }
-- (void)drawFilledRect:(WACFRect)rect color:(WACColor)col {
-    WACDrawRect( rect, col);
+- (void)drawFilledRect:(WFCFRect)rect color:(WFCColor)col {
+    WFCDrawRect( rect, col);
 }
-- (void)drawImage:(WACTexture*)txt at:(WACFPoint)pos {
+- (void)drawImage:(WFCTexture*)txt at:(WFCFPoint)pos {
     // TODO:add a more general method
 
 }

@@ -1,12 +1,9 @@
-#import "WACRender.h"
+#import "WFCRender.h"
 #import "../glad/glad.h"
 #import <plutosvg.h>
 #import <PKLoader.h>
 #import <PKFont.h>
 #import <mathc.h>
-
-#define WAC_MAX_DRAWCALLS 4096
-#define WAC_MAX_VERTEXS 4096 * 4
 
 uint gStandardProgram, gTextProgram;
 const char
@@ -79,24 +76,24 @@ const char
 
 
 uint gVao, gRectVbo, gRectIbo, gGeneralVbo, gGeneralIbo;
-WACTexture *gWhite, *gMissing;
+WFCTexture *gWhite, *gMissing;
 
 uint gSpriteVao, gSpriteVbo, gSpriteIbo;
 
-typedef struct WACVertex {
+typedef struct WFCVertex {
     float pos[3];
     float coord[2];
     float color[4];
-} WACVertex;
+} WFCVertex;
 
 void configureStandardProgram() {
     glEnableVertexAttribArray( 0);
     glEnableVertexAttribArray( 1);
     glEnableVertexAttribArray( 2);
 
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)0);
-    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)(3*sizeof( float)));
-    glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof( WACVertex), (void*)(5*sizeof( float)));
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, sizeof( WFCVertex), (void*)0);
+    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, sizeof( WFCVertex), (void*)(3*sizeof( float)));
+    glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof( WFCVertex), (void*)(5*sizeof( float)));
 }
 
 uint compileProgram( const char *vssrc, const char *fssrc) {
@@ -118,7 +115,7 @@ uint compileProgram( const char *vssrc, const char *fssrc) {
     return p;
 }
 
-void WACRenderSetup() {
+void WFCRenderSetup() {
     gStandardProgram = compileProgram( gStandardVsSrc, gStandardFsSrc);
     gTextProgram = compileProgram( gTextVsSrc, gTextFsSrc);
 
@@ -139,8 +136,8 @@ void WACRenderSetup() {
         missing_txt[] = {
             188, 0, 188, 255,
         };  // pure purple
-    gWhite = [[WACTexture alloc] initFromRGBAImage:white_txt width:1 height:1];
-    gMissing = [[WACTexture alloc] initFromRGBAImage:missing_txt width:1 height:1];
+    gWhite = [[WFCTexture alloc] initFromRGBAImage:white_txt width:1 height:1];
+    gMissing = [[WFCTexture alloc] initFromRGBAImage:missing_txt width:1 height:1];
 
     float spriteData[] = {
         0, 0, 0, 0, 1, 1, 1, 1, 1, // higher left
@@ -165,7 +162,7 @@ void WACRenderSetup() {
     glBindBuffer( GL_ARRAY_BUFFER, 0);
     glBindVertexArray( 0);
 }
-void WACRenderCleanup() {
+void WFCRenderCleanup() {
     [gWhite release];
     [gMissing release];
     glDeleteProgram( gStandardProgram);
@@ -182,41 +179,41 @@ void WACRenderCleanup() {
     glDeleteBuffers( 1, &gSpriteIbo);
 }
 
-WACFRect WACNewFRect( float x, float y, float w, float h) {
-    WACFRect r;
+WFCFRect WFCNewFRect( float x, float y, float w, float h) {
+    WFCFRect r;
     r.x = x;r.y = y; r.w = w;r.h = h;
     return r;
 }
-WACColor WACNewColor( float r, float g, float b, float a) {
-    WACColor c;
+WFCColor WFCNewColor( float r, float g, float b, float a) {
+    WFCColor c;
     c.r = r;c.g = g;c.b = b;c.a = a;
     return c;
 }
-WACFPoint WACNewFPoint( float x, float y) {
-    WACFPoint p;
+WFCFPoint WFCNewFPoint( float x, float y) {
+    WFCFPoint p;
     p.x = x; p.y = y;
     return p;
 }
-WACFSize WACNewFSize( float w, float h) {
-    WACFSize s;
+WFCFSize WFCNewFSize( float w, float h) {
+    WFCFSize s;
     s.w = w; s.h = h;
     return s;
 }
 
-WACFRect transformFRectViaOffset( WACFRect);
+WFCFRect transformFRectViaOffset( WFCFRect);
 
-void WACRenderBegin() {
+void WFCRenderBegin() {
 }
-void WACRenderEnd() { // = WACFrame
+void WFCRenderEnd() { // = WFCFrame
 }
-WACFPoint gOffset;
-void WACSetOffset( WACFPoint offset) {
+WFCFPoint gOffset;
+void WFCSetOffset( WFCFPoint offset) {
     gOffset = offset;
 }
 
-WACFSize gResolution;
+WFCFSize gResolution;
 struct mat4 gViewportOrthoMatrix, gProjectionMatrix;
-void WACOnViewportResized( int w, int h) {
+void WFCOnViewportResized( int w, int h) {
     gResolution.w = w;
     gResolution.h = h;
 
@@ -225,8 +222,8 @@ void WACOnViewportResized( int w, int h) {
     gProjectionMatrix = gViewportOrthoMatrix; // update projection matrix
 }
 
-void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection);
-void WACDrawElements( float *vertexs, int *indexs, int index_count, int vertex_count, struct mat4 *projection, WACTexture *texture);
+void WFCDrawArrays( float *vertexs, int from, int count, struct mat4 *projection);
+void WFCDrawElements( float *vertexs, int *indexs, int index_count, int vertex_count, struct mat4 *projection, WFCTexture *texture);
 
 struct mat4 smat4_translate_direct( struct vec3 offset) {
     struct mat4 o;
@@ -235,12 +232,12 @@ struct mat4 smat4_translate_direct( struct vec3 offset) {
     return smat4_translate( o, offset);
 }
 
-void WACClear( float r, float g, float b, float a) {
+void WFCClear( float r, float g, float b, float a) {
     glClearColor( r, g, b, a);
     glClear( GL_COLOR_BUFFER_BIT);
 }
-void WACDrawRect( WACFRect rect, WACColor color) {
-    WACFPoint p1, p2, p3, p4;
+void WFCDrawRect( WFCFRect rect, WFCColor color) {
+    WFCFPoint p1, p2, p3, p4;
     p1.x = rect.x;p1.y = rect.y;
     p2.x = rect.x + rect.w;p2.y = rect.y;
     p3.x = rect.x;p3.y = rect.y + rect.h;
@@ -261,16 +258,16 @@ void WACDrawRect( WACFRect rect, WACColor color) {
         3, 2, 1
     };
 
-    WACDrawElements( dat1, dat1_indexs, 6, 4, &b, gWhite);
+    WFCDrawElements( dat1, dat1_indexs, 6, 4, &b, gWhite);
 }
 
-void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection) {
+void WFCDrawArrays( float *vertexs, int from, int count, struct mat4 *projection) {
     glUseProgram( gStandardProgram);
     glBindVertexArray( gVao);
     glBindBuffer( GL_ARRAY_BUFFER, gGeneralVbo);
 
     configureStandardProgram();
-    glBufferData( GL_ARRAY_BUFFER, sizeof( WACVertex) * count, vertexs, GL_STREAM_DRAW);
+    glBufferData( GL_ARRAY_BUFFER, sizeof( WFCVertex) * count, vertexs, GL_STREAM_DRAW);
 
     glUniformMatrix4fv( glGetUniformLocation( gStandardProgram, "uProjection"), 1, GL_TRUE, (float*)projection);
     glDrawArrays( GL_TRIANGLES, from, count);
@@ -279,14 +276,14 @@ void WACDrawArrays( float *vertexs, int from, int count, struct mat4 *projection
     glBindVertexArray( 0);
 }
 
-void WACDrawElements( float *vertexs, int *indexs, int index_count, int vertex_count, struct mat4 *projection, WACTexture *texture) {
+void WFCDrawElements( float *vertexs, int *indexs, int index_count, int vertex_count, struct mat4 *projection, WFCTexture *texture) {
     glUseProgram( gStandardProgram);
     glBindVertexArray( gVao);
     glBindBuffer( GL_ARRAY_BUFFER, gGeneralVbo);
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gGeneralIbo);
 
     configureStandardProgram();
-    glBufferData( GL_ARRAY_BUFFER, sizeof( WACVertex) * vertex_count, vertexs, GL_STREAM_DRAW);
+    glBufferData( GL_ARRAY_BUFFER, sizeof( WFCVertex) * vertex_count, vertexs, GL_STREAM_DRAW);
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( int) * index_count, indexs, GL_STREAM_DRAW);
 
     glActiveTexture( GL_TEXTURE0);
@@ -299,8 +296,8 @@ void WACDrawElements( float *vertexs, int *indexs, int index_count, int vertex_c
     glBindVertexArray( 0);
 }
 
-WACFRect transformFRectViaOffset( WACFRect r) {
-    WACFRect rrr = r;
+WFCFRect transformFRectViaOffset( WFCFRect r) {
+    WFCFRect rrr = r;
     rrr.x += gOffset.x;
     rrr.y += gOffset.y;
     return rrr;
@@ -308,7 +305,7 @@ WACFRect transformFRectViaOffset( WACFRect r) {
 
 NSMutableDictionary *gCachedImageDictionary;
 
-@implementation WACTexture
+@implementation WFCTexture
 @synthesize handle;
 @synthesize width;
 @synthesize height;
@@ -318,12 +315,12 @@ NSMutableDictionary *gCachedImageDictionary;
     //    gCachedImageDictionary = [[NSMutableDictionary alloc] init];
     //}
 
-    WACTexture *txt;
+    WFCTexture *txt;
     //txt = [gCachedImageDictionary valueForKey:path];
     //if( txt != NULL) {
     //    return txt;
     //}
-    txt = [[WACTexture alloc] initFromFile:path];
+    txt = [[WFCTexture alloc] initFromFile:path];
     //[gCachedImageDictionary setValue:txt forKey:path];
     return txt;
 }
@@ -373,19 +370,19 @@ NSMutableDictionary *gCachedImageDictionary;
     [super dealloc];
 }
 
-- (void)drawAt:(WACFPoint)pos {
+- (void)drawAt:(WFCFPoint)pos {
     [self drawAt:pos xscale:1 yscale:1 angle:0];
 }
-- (void)drawAt:(WACFPoint)pos xscale:(float)xscale yscale:(float)yscale {
+- (void)drawAt:(WFCFPoint)pos xscale:(float)xscale yscale:(float)yscale {
     [self drawAt:pos xscale:xscale yscale:yscale angle:0];
 }
-- (void)drawAt:(WACFPoint)pos width:(float)ww height:(float)hh {
+- (void)drawAt:(WFCFPoint)pos width:(float)ww height:(float)hh {
     [self drawAt:pos width:ww height:hh angle:0];
 }
-- (void)drawAt:(WACFPoint)pos angle:(float)angle {
+- (void)drawAt:(WFCFPoint)pos angle:(float)angle {
     [self drawAt:pos xscale:1 yscale:1 angle:angle];
 }
-- (void)drawAt:(WACFPoint)pos width:(float)ww height:(float)hh angle:(float)angle {
+- (void)drawAt:(WFCFPoint)pos width:(float)ww height:(float)hh angle:(float)angle {
     int w, h;
     float xs, ys;
     if( !complete) {
@@ -397,7 +394,7 @@ NSMutableDictionary *gCachedImageDictionary;
     }
     [self drawAt:pos xscale:xs yscale:ys angle:angle];
 }
-- (void)drawAt:(WACFPoint)pos xscale:(float)xscale yscale:(float)yscale angle:(float)angle {
+- (void)drawAt:(WFCFPoint)pos xscale:(float)xscale yscale:(float)yscale angle:(float)angle {
     if( !complete) {
         [gMissing drawAt:pos xscale:xscale yscale:yscale angle:angle];
         return;

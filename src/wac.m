@@ -3,15 +3,15 @@
 #import <stdarg.h>
 #import "glad/glad.h"
 #import "gui/nfd.h"
-#import "gui/WACWindow.h"
-#import "gui/WACRender.h"
-#import "gui/WACLang.h"
+#import "gui/WFCWindow.h"
+#import "gui/WFCRender.h"
+#import "gui/WFCLang.h"
 #import <mathc.h>
 #import <string.h>
 
 NSString* WACFormat( NSString *fmt, ...);
 
-WACLangMgr *gLangMgr;
+WFCLangMgr *gLangMgr;
 
 int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
@@ -34,16 +34,16 @@ int main( int argc, char **argv) {
         goto end;
     }
 
-    gLangMgr = [[[WACLangMgr alloc] init] autorelease];
+    gLangMgr = [[[WFCLangMgr alloc] init] autorelease];
     
     glEnable( GL_BLEND);
     glDisable( GL_DEPTH_TEST);
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    WACWindow *wacWindow = [[[WACWindow alloc] autorelease] initFrom:wnd];
-    WACRenderSetup();
-    WACOnViewportResized( width, height);
+    WFCWindow *wacWindow = [[[WFCWindow alloc] autorelease] initFrom:wnd];
+    WFCRenderSetup();
+    WFCOnViewportResized( width, height);
 
     SDL_Event e;
     while( YES) {
@@ -51,12 +51,12 @@ int main( int argc, char **argv) {
             if( ![wacWindow processEvent:&e]) goto end;
         }
         [wacWindow updateWindowStatus];
-        WACOnViewportResized( [wacWindow width], [wacWindow height]);
+        WFCOnViewportResized( [wacWindow width], [wacWindow height]);
         [wacWindow draw];
         SDL_Delay( 33);
     }
 end:
-    WACRenderCleanup();
+    WFCRenderCleanup();
     SDL_Quit();
     //[pool release];
     return 0;

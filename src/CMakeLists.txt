@@ -24,7 +24,7 @@ target_link_libraries( panku freetype harfbuzz harfbuzz::harfbuzz)
 add_executable( wac "")
 target_sources( wac PRIVATE
     "./wac.m" "./cocoa.m"
-    "./gui/WACBase.m" "./gui/WACLang.m" "./gui/WACWindow.m" "./gui/WACRender.m"
+    "./gui/WFCBase.m" "./gui/WFCLang.m" "./gui/WFCWindow.m" "./gui/WFCRender.m"
     "./glad.c" ${nfd_src})
 
 target_link_libraries( wac PRIVATE

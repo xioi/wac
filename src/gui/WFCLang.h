@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 
-@interface WACLanguagePackage : NSObject {
+@interface WFCLanguagePackage : NSObject {
     @private
     NSMutableDictionary *data;
     //NSString *name, *identity, *author, *version;
@@ -13,15 +13,15 @@
 - (NSString*)valueOf:(NSString*)identity;
 @end
 
-@interface WACLangMgr : NSObject {
+@interface WFCLangMgr : NSObject {
     @private
     NSMutableDictionary *packages;
-    WACLanguagePackage *current;
+    WFCLanguagePackage *current;
 }
 - (void)loadLanguageFile:(NSString*)name;
 - (void)switchLanguagePackage:(NSString*)languageName;
 - (NSString*)valueOf:(NSString*)identity;
-- (WACLanguagePackage*)getPackage:(NSString*)language;
+- (WFCLanguagePackage*)getPackage:(NSString*)language;
 @end
 
-WACLangMgr* WACLangMgrContext();
+WFCLangMgr* WFCLangMgrContext();
