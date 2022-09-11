@@ -1,4 +1,4 @@
-#import <Foundation/Foundation.h>
+#import "PanKu.h"
 
 typedef struct FT_FaceRec_* FT_Face;
 typedef struct hb_buffer_t hb_buffer_t;

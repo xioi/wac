@@ -1,6 +1,6 @@
 // P'an Ku Library
 // PKException.h
-#import <Foundation/Foundation.h>
+#import "PanKu.h"
 
 void PKThrowError( NSString *reason, NSString *info);
 void PKExit( int status);

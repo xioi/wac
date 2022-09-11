@@ -8,13 +8,13 @@
 #import "gui/WFCLang.h"
 #import <mathc.h>
 #import <string.h>
+#import <PKSerialization.h>
 
 NSString* WACFormat( NSString *fmt, ...);
 
 WFCLangMgr *gLangMgr;
 
 int main( int argc, char **argv) {
-    NSAutoreleasePool *pool = [NSAutoreleasePool new];
     SDL_Init( SDL_INIT_EVERYTHING);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -27,7 +27,7 @@ int main( int argc, char **argv) {
             windowWithTitle:@"Waffle & Cookie"
             width:width
             height:height
-            flags:WFCBorderLess | WFCResizable] autorelease];
+            flags:WFCResizable] autorelease];
     [wacWindow makeCurrentGLWindow];
 
     int err = gladLoadGLLoader( SDL_GL_GetProcAddress);

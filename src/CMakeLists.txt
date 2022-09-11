@@ -14,9 +14,7 @@ add_library( panku STATIC "")
 target_sources(
     panku PRIVATE
     "./pk/PKException.m" "./pk/PKLoader.m"
-    "./pk/PKFont.m" "./pk/mathc.c"
-    "./pk/PKException.h" "./pk/PKLoader.h"
-    "./pk/PKFont.h" "./pk/mathc.h"
+    "./pk/PKFont.m" "./pk/PKSerialization.m" "./pk/mathc.c"
 )
 target_include_directories( panku PUBLIC "./pk")
 target_link_libraries( panku freetype harfbuzz harfbuzz::harfbuzz)

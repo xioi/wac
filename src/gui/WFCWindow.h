@@ -49,6 +49,7 @@ typedef struct WFCKey {
     @private
     WFCWindow *target;
     WFCFRect area;
+    WFCFPoint offset_;
 }
 @property (readwrite) WFCFRect area;
 
@@ -57,6 +58,9 @@ typedef struct WFCKey {
 - (instancetype)clone;
 
 - (void)setOffset:(WFCFPoint)offset;
+- (void)addOffset:(WFCFPoint)addition;
+- (WFCFPoint)offset;
+
 - (void)drawFilledRect:(WFCFRect)rect color:(WFCColor)col;
 - (void)drawImage:(WFCTexture*)txt at:(WFCFPoint)pos;
 @end
@@ -73,30 +77,36 @@ typedef struct WFCKey {
 - (void)draw:(WFCDrawContext*)ctx;
 @end
 
-@interface WFCContainer : WFCComponent
-- (void)addComponent:(WFCComponent*)component;
-- (void)removeComponent:(WFCComponent*)component;
-- (WFCComponent*)compoentForIndex:(NSUInteger)index;
-- (NSUInteger)componentCount;
-@end
-
-@interface WFCLayouter : NSObject
-@end
-
-@interface WFCView : NSObject {
+@class WFCLayouter;
+@interface WFCContainer : WFCComponent {
     @protected
-    uint width, height;
-    uint x, y;
+    WFCLayouter *layouter;
+    NSMutableArray *components;
 }
+@property (readwrite, copy) WFCLayouter *layouter;
+
+- (id)initWithLayouter:(WFCLayouter*)l;
+
+- (void)addComponent:(WFCComponent*)component;
+- (void)addComponent:(WFCComponent*)component attribute:(NSInteger)addition;
+
+- (void)removeComponent:(WFCComponent*)component;
+- (WFCComponent*)componentForIndex:(NSUInteger)index;
+- (NSInteger)componentAttributeForIndex:(NSUInteger)index;
+- (NSUInteger)componentCount;
 
 - (void)draw:(WFCDrawContext*)ctx;
 @end
 
-@interface WFCSingleViewContainer : WFCView {
+@interface WFCLayouter : NSObject
+- (void)layoutComponents:(WFCContainer*)container;
+@end
+
+@interface WFCSingleViewContainer : WFCContainer {
     @private
-    WFCView *parent;
+    WFCContainer *parent;
 }
-- (id)initWithParent:(WFCView*)parent;
+- (id)initWithParent:(WFCContainer*)parent;
 @end
 
 @interface WFCWindow : NSObject {
@@ -119,9 +129,12 @@ typedef struct WFCKey {
 
 - (id)initWithTitle:(NSString*)title width:(NSUInteger)w height:(NSUInteger)h flags:(WFCWindowFlags)f;
 - (id)initFrom:(SDL_Window*)window;
+
 - (void)draw;
 - (BOOL)processEvent:(SDL_Event*)e;
 - (void)updateWindowStatus;
+
+- (void)didChangeSizeWithPreviousWidth:(int)pw andHeight:(int)ph;
 
 - (void)makeCurrentGLWindow;
 
