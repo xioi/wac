@@ -51,8 +51,6 @@ int main( int argc, char **argv) {
         while( SDL_PollEvent( &e)) {
             if( ![wacWindow processEvent:&e]) goto end;
         }
-        [wacWindow updateWindowStatus];
-        WFCOnViewportResized( [wacWindow width], [wacWindow height]);
         [wacWindow draw];
         SDL_Delay( 33);
     }

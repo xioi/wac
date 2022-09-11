@@ -13,27 +13,27 @@ float t = 0;
 
 @implementation WFCComponent
 - (WFCFSize)preferredSize {
-    return WFCNewFSize( 1, 1);
+    return WFCNewFSize( 200, 200);
 }
 
 - (void)setLocation:(WFCFPoint)location {
-    [self setBounds:WFCNewFRect( location.x, location.y, bounds.w, bounds.h)];
+    [self setBounds:WFCNewFRect( location.x, location.y, mBounds.w, mBounds.h)];
 }
 
 - (void)setSize:(WFCFSize)size {
-    [self setBounds:WFCNewFRect( bounds.x, bounds.y, size.w, size.h)];
+    [self setBounds:WFCNewFRect( mBounds.x, mBounds.y, size.w, size.h)];
 }
 
 - (void)setBounds:(WFCFRect)bounds_ {
-    bounds = bounds_;
+    mBounds = bounds_;
 }
 
 - (WFCFRect)bounds {
-    return bounds;
+    return mBounds;
 }
 
 - (void)draw:(WFCDrawContext*)ctx {
-    [ctx drawFilledRect:bounds color:WFCNewColor( 0.7, 0, 0.7, 1)];
+    [ctx drawFilledRect:mBounds color:WFCNewColor( 0.7, 0, 0.7, 1)];
 }
 @end
 
@@ -86,10 +86,12 @@ float t = 0;
     WFCInternalComponent *ic = [WFCInternalComponent new];
     [ic setComponent:component];
     [ic setAttribute:addition];
+
     [components addObject:ic];
-    [ic release];
+    //[ic release];
 
     // XXX: Always re-layout as long as a new component is inserted?
+    //NSLog( @"%d", self);
     [layouter layoutComponents:self];
 }
 
@@ -118,14 +120,59 @@ float t = 0;
 - (NSUInteger)componentCount {
     return [components count];
 }
+
+- (void)layout {
+    [layouter layoutComponents:self];
+}
 - (void)draw:(WFCDrawContext*)ctx {
     WFCDrawContext *c2 = [ctx clone];
     [c2 addOffset:WFCNewFPoint( [self bounds].x, [self bounds].y)];
     NSUInteger c = [self componentCount];
-    for( uint i=0;i<c;++i) {
-        [[self componentForIndex:c] draw:c2];
+    for( int i=0;i<c;++i) {
+        [[self componentForIndex:i] draw:c2];
     }
     [c2 release];
+}
+@end
+
+@implementation WFCLayouter
+- (void)layoutComponents:(WFCContainer*)container {
+
+}
+@end
+
+@implementation WFCFlowLayouter
+- (id)init {
+    if( self = [self initWithRowCap:1]) {
+
+    }
+    return self;
+}
+- (id)initWithRowCap:(int)rcap_ {
+    if( self = [super init]) {
+        rcap = rcap_;
+    }
+    return self;
+}
+- (void)layoutComponents:(WFCContainer*)container {
+    WFCFPoint np;
+    np.x = rcap;np.y = 0;
+    int lmh = 0;
+    const NSUInteger c = [container componentCount];
+    for( int i=0;i<c;++i) {
+        WFCComponent *component = [container componentForIndex:i];
+        WFCFSize pSize = [component preferredSize];
+
+        //NSLog( @"%.2f %.2f", np.x + pSize.w + rcap, [container bounds].w);
+        if( np.x + pSize.w + rcap > [container bounds].w) {
+            np.x = rcap;
+            np.y += lmh + 1; // FIXME: replace 1 to ccap // "column cap"
+        }
+        [component setBounds:WFCNewFRect( np.x, np.y, pSize.w, pSize.h)];
+        np.x += pSize.w + rcap;
+
+        if( pSize.h > lmh) lmh = pSize.h;
+    }
 }
 @end
 
@@ -170,7 +217,11 @@ extern struct mat4 gProjectionMatrix;
 - (id)init {
     if( self = [super init]) {
         state = WFCFreeWindow;
-        container = [WFCSingleViewContainer new];
+        container = [[WFCSingleViewContainer new] initWithLayouter:[WFCFlowLayouter new]];
+
+        for( int i=0;i<5;++i) {
+            [container addComponent:[WFCComponent new]];
+        }
     }
     return self;
 }
@@ -213,7 +264,7 @@ extern struct mat4 gProjectionMatrix;
         ctx = [[WFCDrawContext alloc] initFromWindow:self];
         glContext = SDL_GL_CreateContext( window);
 
-        [self didChangeSizeWithPreviousWidth:0 andHeight:0];
+        //[self didChangeSizeWithPreviousWidth:0 andHeight:0];
     }
     return self;
 }
@@ -247,8 +298,9 @@ extern struct mat4 gProjectionMatrix;
     switch( e->type) {
         case SDL_QUIT:
             return NO;
-        case SDL_WINDOWEVENT_SIZE_CHANGED: { // FIXME: 事件无效
-            //int w = e->window.data1, h = e->window.data2;
+        case SDL_WINDOWEVENT_RESIZED: { // FIXME: 事件无效
+            int w = e->window.data1, h = e->window.data2;
+            NSLog( @"[[%d %d]]", w, h);
             //WFCOnViewportResized( w, h);
             break;
         }
@@ -269,6 +321,7 @@ extern struct mat4 gProjectionMatrix;
             break;
         }
     }
+    [self updateWindowStatus];
 
     return YES;
 }
@@ -276,6 +329,8 @@ extern struct mat4 gProjectionMatrix;
 - (void)didChangeSizeWithPreviousWidth:(int)pw andHeight:(int)ph {
     NSLog( @"%d %d", width, height);
     [container setBounds:WFCNewFRect( 10, 10, width - 20, height - 20)];
+    [container layout];
+    WFCOnViewportResized( width, height);
 }
 
 - (void)updateWindowStatus {
@@ -300,11 +355,7 @@ extern struct mat4 gProjectionMatrix;
     return self;
 }
 - (void)draw:(WFCDrawContext*)ctx {
-    // WFCDrawContext *c2 = [ctx clone];
-    // [c2 addOffset:WFCNewFPoint( [self bounds].x, [self bounds].y)];
-    // [c2 drawFilledRect:];
-    // [c2 release];
-    [ctx drawFilledRect:[self bounds] color:WFCNewColor( 1, 0.1, 0.1, 1)];
+    [ctx drawFilledRect:[self bounds] color:WFCNewColor( 0.7, 0.7, 0.7, 1)];
     [super draw:ctx];
 }
 @end

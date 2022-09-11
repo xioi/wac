@@ -67,7 +67,7 @@ typedef struct WFCKey {
 
 @interface WFCComponent : NSObject {
     @protected
-    WFCFRect bounds;
+    WFCFRect mBounds;
 }
 - (WFCFSize)preferredSize;
 - (void)setLocation:(WFCFPoint)location;
@@ -95,11 +95,19 @@ typedef struct WFCKey {
 - (NSInteger)componentAttributeForIndex:(NSUInteger)index;
 - (NSUInteger)componentCount;
 
+- (void)layout;
 - (void)draw:(WFCDrawContext*)ctx;
 @end
 
 @interface WFCLayouter : NSObject
 - (void)layoutComponents:(WFCContainer*)container;
+@end
+
+@interface WFCFlowLayouter : WFCLayouter {
+    @private
+    int rcap;
+}
+- (id)initWithRowCap:(int)rcap;
 @end
 
 @interface WFCSingleViewContainer : WFCContainer {
