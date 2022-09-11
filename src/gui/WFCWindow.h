@@ -11,6 +11,11 @@ typedef NS_ENUM( NSUInteger, WFCWindowState) {
     WFCFocusingWindow
 };
 
+typedef NS_OPTIONS( NSUInteger, WFCWindowFlags) {
+    WFCResizable    = 1 << 0,
+    WFCBorderLess   = 1 << 1
+};
+
 typedef struct WFCKey {
     SDL_Keymod mod;
     SDL_KeyCode code;
@@ -60,7 +65,7 @@ typedef struct WFCKey {
     @protected
     WFCFRect bounds;
 }
-- (WFCFSize)perferredSize;
+- (WFCFSize)preferredSize;
 - (void)setLocation:(WFCFPoint)location;
 - (void)setSize:(WFCFSize)size;
 - (void)setBounds:(WFCFRect)bounds;
@@ -71,7 +76,11 @@ typedef struct WFCKey {
 @interface WFCContainer : WFCComponent
 - (void)addComponent:(WFCComponent*)component;
 - (void)removeComponent:(WFCComponent*)component;
+- (WFCComponent*)compoentForIndex:(NSUInteger)index;
 - (NSUInteger)componentCount;
+@end
+
+@interface WFCLayouter : NSObject
 @end
 
 @interface WFCView : NSObject {
@@ -93,6 +102,8 @@ typedef struct WFCKey {
 @interface WFCWindow : NSObject {
     @private
     SDL_Window *mount;
+    SDL_GLContext glContext;
+
     WFCSingleViewContainer *container;
     WFCWindowState state;
     WFCDrawContext *ctx;
@@ -104,9 +115,15 @@ typedef struct WFCKey {
 @property (readonly) int width;
 @property (readonly) int height;
 
++ (instancetype)windowWithTitle:(NSString*)title width:(NSUInteger)w height:(NSUInteger)h flags:(WFCWindowFlags)f;
+
+- (id)initWithTitle:(NSString*)title width:(NSUInteger)w height:(NSUInteger)h flags:(WFCWindowFlags)f;
 - (id)initFrom:(SDL_Window*)window;
 - (void)draw;
 - (BOOL)processEvent:(SDL_Event*)e;
 - (void)updateWindowStatus;
 
+- (void)makeCurrentGLWindow;
+
+- (void)load;
 @end

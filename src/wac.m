@@ -22,18 +22,19 @@ int main( int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
     const uint width = 800, height = 600;
+    WFCWindow *wacWindow =
+        [[WFCWindow
+            windowWithTitle:@"Waffle & Cookie"
+            width:width
+            height:height
+            flags:WFCBorderLess | WFCResizable] autorelease];
+    [wacWindow makeCurrentGLWindow];
 
-    SDL_Window *wnd = SDL_CreateWindow( "Waffle & Cookie",
-    //SDL_Window *wnd = SDL_CreateWindow( [title UTF8String],
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-    SDL_GLContext glContext = SDL_GL_CreateContext( wnd);
     int err = gladLoadGLLoader( SDL_GL_GetProcAddress);
     if( err == GL_FALSE) {
         NSLog( @"This graphics device doesn't support OpenGL 3.3.");
-        goto end;
+        exit( 1);
     }
-
     gLangMgr = [[[WFCLangMgr alloc] init] autorelease];
     
     glEnable( GL_BLEND);
@@ -41,7 +42,7 @@ int main( int argc, char **argv) {
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    WFCWindow *wacWindow = [[[WFCWindow alloc] autorelease] initFrom:wnd];
+    [wacWindow load];
     WFCRenderSetup();
     WFCOnViewportResized( width, height);
 
