@@ -13,6 +13,8 @@
 }
 - (void)dealloc {
     [data release];
+    [author release];
+    [identity release];
     [super dealloc];
 }
 
@@ -34,12 +36,13 @@
     return self;
 }
 - (void)dealloc {
-    [packages release];
+    //[packages release];
     [super dealloc];
 }
 
 - (void)loadLanguageFile:(NSString*)name { // load language file
-    [[self getPackage:name] release]; // release the old one
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+    [packages removeObjectForKey:name];
 
     id pak = [WFCLanguagePackage new];
     [packages setObject:pak forKey:name];
@@ -54,7 +57,9 @@
     if( [data bytes] == NULL) goto error;
     yaml_parser_set_input_string( &parser, [data bytes], [data length]);
 
-    NSMutableArray *stack = [NSMutableArray arrayWithArray:@[@""]];         // prefix stack
+    NSMutableArray *stack = [NSMutableArray new];         // prefix stack
+    [stack addObject:@""];
+    
     BOOL new_key = NO, in_content = NO, toppest = YES;
     NSString *last_one = NULL, *base = @"";
     do {
@@ -103,11 +108,13 @@
     yaml_parser_delete( &parser);
     [data release];
     [stack release];
+    [pool release];
     return;
 error:
     NSLog( @"Failed to parse lang file:%@", path);
     yaml_parser_delete( &parser);
     [data release];
+    [pool release];
 }
 - (void)switchLanguagePackage:(NSString*)languageName {
     id n = [self getPackage:languageName];

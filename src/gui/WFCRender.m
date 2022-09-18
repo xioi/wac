@@ -334,12 +334,16 @@ NSMutableDictionary *gCachedImageDictionary;
 - (id)initFromFile:(NSString*)path {
     if( self = [self init]) {
         NSData *data = [[NSData alloc] initWithContentsOfFile:path];
-        if( [data bytes] == NULL) return self; // error
+        if( [data bytes] == NULL) {
+            [data release];
+            return self; // error
+        }
         // DONE:使用PanKu加载
         int w, h, channels;
         const char *d = PKLoadImageFromData( data, &w, &h, &channels);
         self = [self initFromRGBAImage:d width:w height:h];
         PKFreeImageFile( d);
+        [data release];
     }
     return self;
 }

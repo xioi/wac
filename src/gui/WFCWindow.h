@@ -105,9 +105,24 @@ typedef struct WFCKey {
 
 @interface WFCFlowLayouter : WFCLayouter {
     @private
-    int rcap;
+    int rcap, ccap;
 }
-- (id)initWithRowCap:(int)rcap;
+@property (readwrite) int rcap; // row cap
+@property (readwrite) int ccap; // column cap
+
+- (id)initWithRowCap:(int)rcap columnCap:(int)ccap;
+@end
+
+@interface WFCGridLayouter : WFCLayouter {
+    @private
+    int cloumn, row, rcap, ccap;
+}
+@property (readwrite) int rows; // row count
+@property (readwrite) int columns; // column count
+@property (readwrite) int rcap; // row cap
+@property (readwrite) int ccap; // column cap
+
+- (id)initWithRows:(int)rows columns:(int)columns rowCap:(int)rcap columnCap:(int)ccap;
 @end
 
 @interface WFCSingleViewContainer : WFCContainer {

@@ -13,7 +13,7 @@ float t = 0;
 
 @implementation WFCComponent
 - (WFCFSize)preferredSize {
-    return WFCNewFSize( 200, 200);
+    return WFCNewFSize( rand() % 40 + 80, rand() % 80 + 80); // FIXME: to default size 100x100
 }
 
 - (void)setLocation:(WFCFPoint)location {
@@ -88,7 +88,7 @@ float t = 0;
     [ic setAttribute:addition];
 
     [components addObject:ic];
-    //[ic release];
+    [ic release];
 
     // XXX: Always re-layout as long as a new component is inserted?
     //NSLog( @"%d", self);
@@ -142,21 +142,25 @@ float t = 0;
 @end
 
 @implementation WFCFlowLayouter
+@synthesize rcap;
+@synthesize ccap;
+
 - (id)init {
-    if( self = [self initWithRowCap:1]) {
+    if( self = [self initWithRowCap:1 columnCap:1]) {
 
     }
     return self;
 }
-- (id)initWithRowCap:(int)rcap_ {
+- (id)initWithRowCap:(int)rcap_ columnCap:(int)ccap_{
     if( self = [super init]) {
         rcap = rcap_;
+        ccap = ccap_;
     }
     return self;
 }
 - (void)layoutComponents:(WFCContainer*)container {
     WFCFPoint np;
-    np.x = rcap;np.y = 0;
+    np.x = rcap;np.y = ccap;
     int lmh = 0;
     const NSUInteger c = [container componentCount];
     for( int i=0;i<c;++i) {
@@ -166,12 +170,45 @@ float t = 0;
         //NSLog( @"%.2f %.2f", np.x + pSize.w + rcap, [container bounds].w);
         if( np.x + pSize.w + rcap > [container bounds].w) {
             np.x = rcap;
-            np.y += lmh + 1; // FIXME: replace 1 to ccap // "column cap"
+            np.y += lmh + ccap;
         }
         [component setBounds:WFCNewFRect( np.x, np.y, pSize.w, pSize.h)];
         np.x += pSize.w + rcap;
 
         if( pSize.h > lmh) lmh = pSize.h;
+    }
+}
+@end
+
+@implementation WFCGridLayouter
+@synthesize rows;
+@synthesize columns;
+@synthesize rcap;
+@synthesize ccap;
+
+- (id)initWithRows:(int)rows_ columns:(int)columns_ rowCap:(int)rcap_ columnCap:(int)ccap_ {
+    if( self = [self init]) {
+        rcap = rcap_;
+        ccap = ccap_;
+        rows = rows_;
+        columns = columns_;
+    }
+    return self;
+}
+
+- (void)layoutComponents:(WFCContainer*)container {
+    const NSUInteger c = [container componentCount];
+    const WFCFRect siz = [container bounds];
+    int cw = (siz.w - ccap - columns * ccap) / columns, ch = (siz.h - rcap - rows * rcap) / rows;
+    int cc = 0, rc = 0;
+    for( int i=0;i<c;++i) {
+        if( cc >= columns) {
+            rc += 1;
+            cc = 0;
+        }
+        WFCComponent *component = [container componentForIndex:i];
+        [component setBounds:WFCNewFRect( (cc + 1) * ccap + cc * cw, (rc + 1) * rcap + rc * ch, cw, ch )];
+        ++cc;
     }
 }
 @end
@@ -217,9 +254,12 @@ extern struct mat4 gProjectionMatrix;
 - (id)init {
     if( self = [super init]) {
         state = WFCFreeWindow;
-        container = [[WFCSingleViewContainer new] initWithLayouter:[WFCFlowLayouter new]];
+        container =
+            [[WFCSingleViewContainer new]
+                //initWithLayouter:[[WFCFlowLayouter new] initWithRowCap:10 columnCap:10]];
+                initWithLayouter:[[WFCGridLayouter new] initWithRows:4 columns:5 rowCap:10 columnCap:10]];
 
-        for( int i=0;i<5;++i) {
+        for( int i=0;i<20;++i) {
             [container addComponent:[WFCComponent new]];
         }
     }
@@ -232,7 +272,7 @@ extern struct mat4 gProjectionMatrix;
 }
 
 + (instancetype)windowWithTitle:(NSString*)title width:(NSUInteger)w height:(NSUInteger)h flags:(WFCWindowFlags)f {
-    return [[WFCWindow alloc] initWithTitle:title width:w height:h flags:f];
+    return [[[WFCWindow alloc] initWithTitle:title width:w height:h flags:f] retain];
 }
 
 - (id)initWithTitle:(NSString*)title width:(NSUInteger)w height:(NSUInteger)h flags:(WFCWindowFlags)f {
@@ -327,7 +367,7 @@ extern struct mat4 gProjectionMatrix;
 }
 
 - (void)didChangeSizeWithPreviousWidth:(int)pw andHeight:(int)ph {
-    NSLog( @"%d %d", width, height);
+    //NSLog( @"%d %d", width, height);
     [container setBounds:WFCNewFRect( 10, 10, width - 20, height - 20)];
     [container layout];
     WFCOnViewportResized( width, height);
