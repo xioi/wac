@@ -8,7 +8,6 @@
 #import "gui/WFCLang.h"
 #import <mathc.h>
 #import <string.h>
-#import <PKSerialization.h>
 
 NSString* WACFormat( NSString *fmt, ...);
 

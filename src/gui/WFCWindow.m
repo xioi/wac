@@ -12,6 +12,60 @@ WFCTexture *txt;
 float t = 0;
 
 @implementation WFCComponent
+@synthesize root;
+@synthesize parent;
+@synthesize isHovering;
+
+- (NSString*)uiName {
+    return @"WFCComponentUI";
+}
+
+- (BOOL)focusable {
+    return NO;
+}
+
+- (void)requestFocus {
+    // TODO: request focus
+}
+
+- (void)mouseEnter {
+    isHovering = YES;
+    [self didMouseEnter];
+}
+- (void)mouseExit {
+    isHovering = NO;
+    [self didMouseExit];
+}
+- (void)didMouseEnter {
+    //NSLog( @"Mouse Enter");
+}
+- (void)didMouseExit {
+    //NSLog( @"Mouse Exit");
+}
+
+- (WFCFPoint)absolutePosition {
+    WFCFPoint ap;
+    ap.x = 0; ap.y = 0;
+    if( [self parent] != nil) {
+        WFCFRect pb = [parent bounds];
+        ap.x += pb.x;
+        ap.y += pb.y;
+    }
+    ap.x += mBounds.x;
+    ap.y += mBounds.y;
+    return ap;
+}
+
+- (BOOL)hitTest:(WFCFPoint)point {
+    WFCFPoint ap = [self absolutePosition];
+    point.x -= ap.x; point.y -= ap.y;
+    if( (point.x >= 0 && point.x <= mBounds.w) && (point.y >= 0 && point.y <= mBounds.h)) {
+        return YES;
+    }else {
+        return NO;
+    }
+}
+
 - (WFCFSize)preferredSize {
     return WFCNewFSize( rand() % 40 + 80, rand() % 80 + 80); // FIXME: to default size 100x100
 }
@@ -33,6 +87,7 @@ float t = 0;
 }
 
 - (void)draw:(WFCDrawContext*)ctx {
+    // TODO:
     [ctx drawFilledRect:mBounds color:WFCNewColor( 0.7, 0, 0.7, 1)];
 }
 @end
@@ -87,6 +142,9 @@ float t = 0;
     [ic setComponent:component];
     [ic setAttribute:addition];
 
+    [component setRoot:[self root]];
+    [component setParent:self];
+
     [components addObject:ic];
     [ic release];
 
@@ -119,6 +177,18 @@ float t = 0;
 }
 - (NSUInteger)componentCount {
     return [components count];
+}
+
+- (WFCComponent*)mouseHit:(WFCFPoint)point {
+    __block WFCComponent *target = nil;
+    [components enumerateObjectsUsingBlock:^( id _Nonnull obj, NSUInteger i, BOOL * _Nonnull ret) {
+        WFCComponent *component_ = [obj component];
+        if( [component_ hitTest:point]) {
+            target = component_;
+            *ret = YES;
+        }
+    }];
+    return target;
 }
 
 - (void)layout {
@@ -258,10 +328,18 @@ extern struct mat4 gProjectionMatrix;
             [[WFCSingleViewContainer new]
                 //initWithLayouter:[[WFCFlowLayouter new] initWithRowCap:10 columnCap:10]];
                 initWithLayouter:[[WFCGridLayouter new] initWithRows:4 columns:5 rowCap:10 columnCap:10]];
+        [container setRoot:self];
 
         for( int i=0;i<20;++i) {
-            [container addComponent:[WFCComponent new]];
+            [container addComponent:
+                [[WFCColoredQuadComponent alloc] initWithColor:
+                    WFCNewColor(
+                        (rand() % 256) / 256.0f,
+                        (rand() % 256) / 256.0f,
+                        (rand() % 256) / 256.0f, 1)]];
         }
+
+        lastHoveringComponent = nil;
     }
     return self;
 }
@@ -346,17 +424,34 @@ extern struct mat4 gProjectionMatrix;
         }
         case SDL_MOUSEBUTTONDOWN: { // 处理鼠标按下事件
             if( e->button.windowID == wnd_id) {
-                // TODO:
-                // * 判断焦点
-                // * dispatch消息
                 //NSLog( @"Mouse Button Down %d in [%d,%d]", e->button.button, e->button.x, e->button.y);
+                int mx = e->button.x, my = e->button.y;
+                int button = e->button.button;
+                if( e->button.clicks >= 2) {
+                    NSLog( @"Clicked %d times", e->button.clicks);
+                }
+            }
+            break;
+        }
+        case SDL_MOUSEBUTTONUP: { // 处理鼠标抬起事件
+            break;
+        }
+        case SDL_MOUSEMOTION: {
+            if( e->button.windowID == wnd_id) {
+                //NSLog( @"Mouse in [%d,%d]", e->button.x, e->button.y);
+                WFCComponent *hover = [container mouseHit:WFCNewFPoint( e->button.x, e->button.y)];
+                if( hover != lastHoveringComponent) {
+                    [lastHoveringComponent mouseExit];
+                    [hover mouseEnter];
+                    lastHoveringComponent = hover;
+                }
             }
             break;
         }
         case SDL_KEYDOWN: { // 处理键盘按下事件
             if( e->key.windowID == wnd_id) {
                 SDL_Keysym sym =  e->key.keysym;
-                NSLog( @"Key down of %c Shift?:%d", sym.sym, sym.mod & KMOD_SHIFT);
+                //NSLog( @"Key down of %c Shift?:%d", sym.sym, sym.mod & KMOD_SHIFT);
             }
             break;
         }
@@ -397,6 +492,33 @@ extern struct mat4 gProjectionMatrix;
 - (void)draw:(WFCDrawContext*)ctx {
     [ctx drawFilledRect:[self bounds] color:WFCNewColor( 0.7, 0.7, 0.7, 1)];
     [super draw:ctx];
+}
+@end
+
+@implementation WFCColoredQuadComponent
+@synthesize color;
+
+- (NSString*)uiName {
+    return @"WFCColoredQuadComponentUI";
+}
+
+- (WFCFSize)preferredSize {
+    return WFCNewFSize( 100, 100);
+}
+
+- (id)initWithColor:(WFCColor)color_ {
+    if( self = [self init]) {
+        color = color_;
+    }
+    return self;
+}
+
+- (void)draw:(WFCDrawContext*)ctx {
+    WFCColor color2 = color;
+    if( [self isHovering]) {
+        color2.a = 0.5;
+    }
+    [ctx drawFilledRect:mBounds color:color2];
 }
 @end
 

@@ -65,15 +65,37 @@ typedef struct WFCKey {
 - (void)drawImage:(WFCTexture*)txt at:(WFCFPoint)pos;
 @end
 
+@class WFCContainer;
 @interface WFCComponent : NSObject {
     @protected
     WFCFRect mBounds;
+    WFCWindow *root; // TODO:
+    WFCContainer *parent;
+
+    BOOL isHovering;
 }
+@property (readwrite, assign) WFCWindow *root;
+@property (readwrite, assign) WFCContainer *parent;
+@property (readwrite) WFCFRect bounds;
+@property (readonly) NSString *uiName;
+@property (readonly) BOOL focusable;
+@property (readonly) BOOL isHovering;
+
 - (WFCFSize)preferredSize;
 - (void)setLocation:(WFCFPoint)location;
 - (void)setSize:(WFCFSize)size;
-- (void)setBounds:(WFCFRect)bounds;
-- (WFCFRect)bounds;
+
+- (WFCFPoint)absolutePosition;
+
+- (void)mouseEnter;
+- (void)mouseExit;
+
+- (void)requestFocus;
+- (void)didMouseEnter;
+- (void)didMouseExit; // TODO: add tracking-area
+
+- (BOOL)hitTest:(WFCFPoint)point;
+
 - (void)draw:(WFCDrawContext*)ctx;
 @end
 
@@ -94,6 +116,8 @@ typedef struct WFCKey {
 - (WFCComponent*)componentForIndex:(NSUInteger)index;
 - (NSInteger)componentAttributeForIndex:(NSUInteger)index;
 - (NSUInteger)componentCount;
+
+- (WFCComponent*)mouseHit:(WFCFPoint)point;
 
 - (void)layout;
 - (void)draw:(WFCDrawContext*)ctx;
@@ -125,11 +149,18 @@ typedef struct WFCKey {
 - (id)initWithRows:(int)rows columns:(int)columns rowCap:(int)rcap columnCap:(int)ccap;
 @end
 
-@interface WFCSingleViewContainer : WFCContainer {
-    @private
-    WFCContainer *parent;
-}
+@interface WFCSingleViewContainer : WFCContainer
 - (id)initWithParent:(WFCContainer*)parent;
+@end
+
+// a debug component
+@interface WFCColoredQuadComponent : WFCComponent {
+    @private
+    WFCColor color;
+}
+@property (readwrite) WFCColor color;
+
+- (id)initWithColor:(WFCColor)color;
 @end
 
 @interface WFCWindow : NSObject {
@@ -140,6 +171,8 @@ typedef struct WFCKey {
     WFCSingleViewContainer *container;
     WFCWindowState state;
     WFCDrawContext *ctx;
+
+    WFCComponent *lastHoveringComponent;
 
     int wdith, height;
 }
