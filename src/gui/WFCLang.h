@@ -1,5 +1,27 @@
 #import <Foundation/Foundation.h>
 
+@interface WFCText : NSObject
+- (NSString*)value;
+- (NSString*)remake;
+@end
+
+@interface WFCConstantText : WFCText {
+    @private
+    NSString *constant;
+}
+- (id)initFromString:(NSString*)constant;
++ (instancetype)textFromString:(NSString*)constant;
+@end
+
+@interface WFCLangText : WFCText {
+    @private
+    NSMutableArray *text;
+    NSString *cache;
+}
+- (id)initFromString:(NSString*)lang;
++ (instancetype)textFromString:(NSString*)lang;
+@end
+
 @interface WFCLanguagePackage : NSObject {
     @private
     NSMutableDictionary *data;

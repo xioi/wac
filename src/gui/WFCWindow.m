@@ -28,20 +28,25 @@ float t = 0;
     // TODO: request focus
 }
 
-- (void)mouseEnter {
+- (void)mouseEnter:(WFCMouseEvent)e {
     isHovering = YES;
-    [self didMouseEnter];
+    [self didMouseEnter:e];
 }
-- (void)mouseExit {
+- (void)mouseExit:(WFCMouseEvent)e {
     isHovering = NO;
-    [self didMouseExit];
+    [self didMouseExit:e];
 }
-- (void)didMouseEnter {
-    //NSLog( @"Mouse Enter");
+- (void)mouseDown:(WFCMouseEvent)e {
+    [self didMouseDown:e];
 }
-- (void)didMouseExit {
-    //NSLog( @"Mouse Exit");
+- (void)mouseUp:(WFCMouseEvent)e {
+    [self didMouseUp:e];
 }
+
+- (void)didMouseEnter:(WFCMouseEvent)e {}
+- (void)didMouseExit:(WFCMouseEvent)e {}
+- (void)didMouseDown:(WFCMouseEvent)e {}
+- (void)didMouseUp:(WFCMouseEvent)e {}
 
 - (WFCFPoint)absolutePosition {
     WFCFPoint ap;
@@ -321,7 +326,19 @@ static SDL_GLContext gGLContext;
 @synthesize state;
 @synthesize width;
 @synthesize height;
+@synthesize mousePressing;
 
+- (WFCFPoint)position {
+    int wx, wy;
+    SDL_GetWindowPosition( mount, &wx, &wy);
+    return WFCNewFPoint( wx, wy);
+}
+- (int)x {
+    return (int)[self position].x;
+}
+- (int)y {
+    return (int)[self position].y;
+}
 - (NSUInteger)windowID {
     return SDL_GetWindowID( mount);
 }
@@ -425,39 +442,45 @@ static SDL_GLContext gGLContext;
     uint wnd_id = SDL_GetWindowID( mount);
 
     switch( e->type) {
-        case SDL_QUIT:
-            return NO;
-        case SDL_WINDOWEVENT_RESIZED: { // FIXME: 事件无效
-            int w = e->window.data1, h = e->window.data2;
-            NSLog( @"[[%d %d]]", w, h);
-            //WFCOnViewportResized( w, h);
-            break;
-        }
         case SDL_MOUSEBUTTONDOWN: { // 处理鼠标按下事件
-            //NSLog( @"Mouse Button Down %d in [%d,%d]", e->button.button, e->button.x, e->button.y);
-            int mx = e->button.x, my = e->button.y;
-            int button = e->button.button;
+            mousePressing = YES;
+            WFCMouseEvent me;
+            me.type = WFCMouseDown;
+            me.x = e->button.x;
+            me.y = e->button.y;
+            me.button = e->button.button;
+            me.times = e->button.clicks;
+
             if( e->button.clicks >= 2) {
                 NSLog( @"Clicked %d times", e->button.clicks);
+            }
+            if( lastHoveringComponent != nil) {
+                [lastHoveringComponent mouseDown:me];
             }
             break;
         }
         case SDL_MOUSEBUTTONUP: { // 处理鼠标抬起事件
+            mousePressing = NO;
             break;
         }
         case SDL_MOUSEMOTION: {
-            //NSLog( @"Mouse in [%d,%d]", e->button.x, e->button.y);
             WFCComponent *hover = [container mouseHit:WFCNewFPoint( e->button.x, e->button.y)];
-            if( hover != lastHoveringComponent) {
-                [lastHoveringComponent mouseExit];
-                [hover mouseEnter];
+            WFCMouseEvent mouseevent;
+                mouseevent.x = e->button.x;
+                mouseevent.y = e->button.y;
+            if( hover == nil) {
+                mouseevent.type = WFCMouseExit;
+                [lastHoveringComponent mouseExit:mouseevent]; // send exit
+            }else if( hover != lastHoveringComponent) {
+                mouseevent.type = WFCMouseExit;
+                [lastHoveringComponent mouseExit:mouseevent]; // send exit
+                mouseevent.type = WFCMouseEnter;
+                [hover mouseEnter:mouseevent]; // send enter
                 lastHoveringComponent = hover;
             }
             break;
         }
-        case SDL_KEYDOWN: { // 处理键盘按下事件
-            SDL_Keysym sym =  e->key.keysym;
-            //NSLog( @"Key down of %c Shift?:%d", sym.sym, sym.mod & KMOD_SHIFT);
+        case SDL_KEYDOWN: { // TODO:处理键盘按下事件
             break;
         }
     }
@@ -516,6 +539,10 @@ static SDL_GLContext gGLContext;
         color = color_;
     }
     return self;
+}
+
+- (void)didMouseDown:(WFCMouseEvent)e {
+    NSLog( @"clicked %d times! isHovering:%d", e.times, isHovering);
 }
 
 - (void)draw:(WFCDrawContext*)ctx {

@@ -1,16 +1,12 @@
 #import <SDL.h>
 #import "WFCRender.h"
-
-@interface WFCText : NSObject
-- (NSString*)value;
-- (NSString*)remake;
-@end
+#import "WFCLang.h"
+#import "WFCUIEvent.h"
 
 typedef NS_ENUM( NSUInteger, WFCWindowState) {
     WFCFreeWindow = 0,
     WFCFocusingWindow
 };
-
 typedef NS_OPTIONS( NSUInteger, WFCWindowFlags) {
     WFCResizable    = 1 << 0,
     WFCBorderLess   = 1 << 1
@@ -20,28 +16,10 @@ typedef struct WFCKey {
     SDL_Keymod mod;
     SDL_KeyCode code;
 } WFCKey;
-
-@protocol WFCHotkeyProcesser
+@protocol WFCHotkeyResponder
 - (void)addHotkey:(WFCKey)key processer:(void(^)( WFCKey key))func;
 - (void)processHotkey:(WFCKey)key;
 - (BOOL)hasHotkey:(WFCKey)key;
-@end
-
-@interface WFCConstantText : WFCText {
-    @private
-    NSString *constant;
-}
-- (id)initFromString:(NSString*)constant;
-+ (instancetype)textFromString:(NSString*)constant;
-@end
-
-@interface WFCLangText : WFCText {
-    @private
-    NSMutableArray *text;
-    NSString *cache;
-}
-- (id)initFromString:(NSString*)lang;
-+ (instancetype)textFromString:(NSString*)lang;
 @end
 
 @class WFCWindow;
@@ -66,10 +44,10 @@ typedef struct WFCKey {
 @end
 
 @class WFCContainer;
-@interface WFCComponent : NSObject {
+@interface WFCComponent : NSObject <WFCUIEventResponder> {
     @protected
     WFCFRect mBounds;
-    WFCWindow *root; // TODO:
+    WFCWindow *root;
     WFCContainer *parent;
 
     BOOL isHovering;
@@ -87,12 +65,12 @@ typedef struct WFCKey {
 
 - (WFCFPoint)absolutePosition;
 
-- (void)mouseEnter;
-- (void)mouseExit;
+- (void)mouseEnter:(WFCMouseEvent)e;
+- (void)mouseExit:(WFCMouseEvent)e;
+- (void)mouseDown:(WFCMouseEvent)e;
+- (void)mouseUp:(WFCMouseEvent)e;
 
 - (void)requestFocus;
-- (void)didMouseEnter;
-- (void)didMouseExit; // TODO: add tracking-area
 
 - (BOOL)hitTest:(WFCFPoint)point;
 
@@ -174,11 +152,16 @@ typedef struct WFCKey {
 
     WFCComponent *lastHoveringComponent;
 
+    BOOL mousePressing;
     int wdith, height;
 }
 
 @property (readwrite) WFCWindowState state;
+
 @property (readonly) NSUInteger windowID;
+@property (readonly) BOOL mousePressing;
+@property (readonly) int x;
+@property (readonly) int y;
 @property (readonly) int width;
 @property (readonly) int height;
 
