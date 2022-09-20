@@ -11,16 +11,9 @@
 
 NSString* WACFormat( NSString *fmt, ...);
 void WACInit();
-NSUInteger WACGetSDLEventWindowID( SDL_Event *e);
 
 int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
-    SDL_Init( SDL_INIT_EVERYTHING);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, WAC_OPENGL_VERSION_MAJOR);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, WAC_OPENGL_VERSION_MINOR);
-
     WACInit();
 
     const uint width = 800, height = 600;
@@ -30,11 +23,18 @@ int main( int argc, char **argv) {
             width:width
             height:height
             flags:WFCResizable] autorelease];
-    [wacWindow makeCurrentGLWindow];
+    WFCWindow *wacWindow2 =
+        [[WFCWindow
+            windowWithTitle:@"Waffle & Cookie2"
+            width:width
+            height:height
+            flags:WFCResizable] autorelease];
+    
+    //[wacWindow makeCurrentGLWindow];
 
     int err = gladLoadGLLoader( SDL_GL_GetProcAddress);
     if( err == GL_FALSE) {
-        NSLog( @"This graphics device doesn't support OpenGL 3.3.");
+        NSLog( @"This graphics device doesn't support OpenGL %d.%d.", WAC_OPENGL_VERSION_MAJOR, WAC_OPENGL_VERSION_MINOR);
         exit( 1);
     }
     
@@ -49,23 +49,16 @@ int main( int argc, char **argv) {
 
     WFCWindowManager *wndMgr = WFCWindowManagerContext();
     [wndMgr addWindow:wacWindow];
+    [wndMgr addWindow:wacWindow2];
 
     SDL_Event e;
     while( YES) {
         while( SDL_PollEvent( &e)) {
-            if( e.type == SDL_QUIT) goto end;
+            if( ![wndMgr processEvent:&e]) goto end;
             //if( ![wacWindow processEvent:&e]) goto end;
-            uint c = [wndMgr windowCount];
-            for( uint i=0;i<c;++i) {
-                WFCWindow *wnd = [wndMgr windowAtIndex:i];
-                NSUInteger wid = WACGetSDLEventWindowID( &e);
-                if( [wnd windowID] == wid) {
-                    [wnd processEvent:&e];
-                    break;
-                }
-            }
         }
         [wacWindow draw];
+        [wacWindow2 draw];
         SDL_Delay( 33);
     }
 end:
@@ -77,20 +70,13 @@ end:
 
 void WFCWindowInit();
 void WACInit() {
-    WFCWindowInit();
-}
+    SDL_Init( SDL_INIT_EVERYTHING);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, WAC_OPENGL_VERSION_MAJOR);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, WAC_OPENGL_VERSION_MINOR);
 
-NSUInteger WACGetSDLEventWindowID( SDL_Event *e) {
-    switch( e->type) {
-        case SDL_MOUSEMOTION:
-        case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP:
-            return e->button.windowID;
-            break;
-        default: // TODO: add more
-            break;
-    }
-    return 99999;
+    WFCWindowInit();
 }
 
 NSString* WACFormat( NSString *fmt, ...) {

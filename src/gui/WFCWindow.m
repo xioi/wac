@@ -316,6 +316,7 @@ extern uint gTextProgram;
 
 extern struct mat4 gProjectionMatrix;
 
+static SDL_GLContext gGLContext;
 @implementation WFCWindow
 @synthesize state;
 @synthesize width;
@@ -384,8 +385,11 @@ extern struct mat4 gProjectionMatrix;
     if( self = [self init]) {
         mount = window;
         ctx = [[WFCDrawContext alloc] initFromWindow:self];
-        glContext = SDL_GL_CreateContext( window);
-
+        //glContext = SDL_GL_CreateContext( window);
+        
+        if( gGLContext == nil) {
+            gGLContext = SDL_GL_CreateContext( window);
+        }
         //[self didChangeSizeWithPreviousWidth:0 andHeight:0];
     }
     return self;
@@ -408,9 +412,12 @@ extern struct mat4 gProjectionMatrix;
 
 - (void)draw {
     WFCRenderBegin();
+    [self makeCurrentGLWindow];
+
     WFCClear( 1, 1, 1, 1);
     [ctx setOffset:WFCNewFPoint( 0, 0)];
     [container draw:ctx];
+
     WFCRenderEnd();
     SDL_GL_SwapWindow( mount);
 }
@@ -427,13 +434,11 @@ extern struct mat4 gProjectionMatrix;
             break;
         }
         case SDL_MOUSEBUTTONDOWN: { // 处理鼠标按下事件
-            if( e->button.windowID == wnd_id) {
-                //NSLog( @"Mouse Button Down %d in [%d,%d]", e->button.button, e->button.x, e->button.y);
-                int mx = e->button.x, my = e->button.y;
-                int button = e->button.button;
-                if( e->button.clicks >= 2) {
-                    NSLog( @"Clicked %d times", e->button.clicks);
-                }
+            //NSLog( @"Mouse Button Down %d in [%d,%d]", e->button.button, e->button.x, e->button.y);
+            int mx = e->button.x, my = e->button.y;
+            int button = e->button.button;
+            if( e->button.clicks >= 2) {
+                NSLog( @"Clicked %d times", e->button.clicks);
             }
             break;
         }
@@ -441,22 +446,18 @@ extern struct mat4 gProjectionMatrix;
             break;
         }
         case SDL_MOUSEMOTION: {
-            if( e->button.windowID == wnd_id) {
-                //NSLog( @"Mouse in [%d,%d]", e->button.x, e->button.y);
-                WFCComponent *hover = [container mouseHit:WFCNewFPoint( e->button.x, e->button.y)];
-                if( hover != lastHoveringComponent) {
-                    [lastHoveringComponent mouseExit];
-                    [hover mouseEnter];
-                    lastHoveringComponent = hover;
-                }
+            //NSLog( @"Mouse in [%d,%d]", e->button.x, e->button.y);
+            WFCComponent *hover = [container mouseHit:WFCNewFPoint( e->button.x, e->button.y)];
+            if( hover != lastHoveringComponent) {
+                [lastHoveringComponent mouseExit];
+                [hover mouseEnter];
+                lastHoveringComponent = hover;
             }
             break;
         }
         case SDL_KEYDOWN: { // 处理键盘按下事件
-            if( e->key.windowID == wnd_id) {
-                SDL_Keysym sym =  e->key.keysym;
-                //NSLog( @"Key down of %c Shift?:%d", sym.sym, sym.mod & KMOD_SHIFT);
-            }
+            SDL_Keysym sym =  e->key.keysym;
+            //NSLog( @"Key down of %c Shift?:%d", sym.sym, sym.mod & KMOD_SHIFT);
             break;
         }
     }
@@ -482,7 +483,7 @@ extern struct mat4 gProjectionMatrix;
 }
 
 - (void)makeCurrentGLWindow {
-    SDL_GL_MakeCurrent( mount, glContext);
+    SDL_GL_MakeCurrent( mount, gGLContext);
 }
 @end
 
@@ -606,6 +607,25 @@ extern struct mat4 gProjectionMatrix;
 - (void)removeWindow:(WFCWindow*)window {
     [windows removeObject:window];
 }
+
+- (BOOL)processEvent:(SDL_Event*)e {
+    if( e->type == SDL_QUIT) return NO;
+    uint c = [self windowCount];
+    NSInteger wid = WFCGetSDLEventWindowID( e);
+    for( uint i=0;i<c;++i) {
+        WFCWindow *wnd = [self windowAtIndex:i];
+        if( wid == -1) continue;
+        if( wid == -2) {
+            [wnd processEvent:e];
+            continue;
+        }
+        if( [wnd windowID] == wid) {
+            [wnd processEvent:e];
+            break;
+        }
+    }
+    return YES;
+}
 @end
 
 static NSLock *gWindowManagerLock = nil;
@@ -617,6 +637,27 @@ WFCWindowManager *WFCWindowManagerContext() {
     }
     [gWindowManagerLock unlock];
     return gWindowManager;
+}
+
+NSInteger WFCGetSDLEventWindowID( SDL_Event *e) {
+    switch( e->type) {
+        case SDL_MOUSEMOTION:
+            return e->motion.windowID;
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+            return e->button.windowID;
+            break;
+        case SDL_MOUSEWHEEL:
+            return e->wheel.windowID;
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+            return e->key.windowID;
+        // TODO:
+        default:
+            break;
+    }
+    return -2; // for all windows
 }
 
 void WFCWindowInit() {

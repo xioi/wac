@@ -208,6 +208,9 @@ typedef struct WFCKey {
 
 - (void)addWindow:(WFCWindow*)window;
 - (void)removeWindow:(WFCWindow*)window;
+
+- (BOOL)processEvent:(SDL_Event*)e;
 @end
 
+NSInteger WFCGetSDLEventWindowID( SDL_Event *e);
 WFCWindowManager *WFCWindowManagerContext();
