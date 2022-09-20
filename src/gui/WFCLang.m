@@ -57,8 +57,7 @@
     if( [data bytes] == NULL) goto error;
     yaml_parser_set_input_string( &parser, [data bytes], [data length]);
 
-    NSMutableArray *stack = [NSMutableArray new];         // prefix stack
-    [stack addObject:@""];
+    NSMutableArray *stack = [NSMutableArray arrayWithObject:@""]; // prefix stack
     
     BOOL new_key = NO, in_content = NO, toppest = YES;
     NSString *last_one = NULL, *base = @"";

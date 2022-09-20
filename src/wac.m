@@ -2,24 +2,26 @@
 #import <SDL.h>
 #import <stdarg.h>
 #import "glad/glad.h"
-#import "gui/nfd.h"
 #import "gui/WFCWindow.h"
 #import "gui/WFCRender.h"
 #import "gui/WFCLang.h"
-#import <mathc.h>
-#import <string.h>
+
+#define WAC_OPENGL_VERSION_MAJOR 3
+#define WAC_OPENGL_VERSION_MINOR 3
 
 NSString* WACFormat( NSString *fmt, ...);
-
-WFCLangMgr *gLangMgr;
+void WACInit();
+NSUInteger WACGetSDLEventWindowID( SDL_Event *e);
 
 int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     SDL_Init( SDL_INIT_EVERYTHING);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, WAC_OPENGL_VERSION_MAJOR);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, WAC_OPENGL_VERSION_MINOR);
+
+    WACInit();
 
     const uint width = 800, height = 600;
     WFCWindow *wacWindow =
@@ -35,7 +37,6 @@ int main( int argc, char **argv) {
         NSLog( @"This graphics device doesn't support OpenGL 3.3.");
         exit( 1);
     }
-    gLangMgr = [[WFCLangMgr new] autorelease];
     
     glEnable( GL_BLEND);
     glDisable( GL_DEPTH_TEST);
@@ -46,10 +47,23 @@ int main( int argc, char **argv) {
     WFCRenderSetup();
     WFCOnViewportResized( width, height);
 
+    WFCWindowManager *wndMgr = WFCWindowManagerContext();
+    [wndMgr addWindow:wacWindow];
+
     SDL_Event e;
     while( YES) {
         while( SDL_PollEvent( &e)) {
-            if( ![wacWindow processEvent:&e]) goto end;
+            if( e.type == SDL_QUIT) goto end;
+            //if( ![wacWindow processEvent:&e]) goto end;
+            uint c = [wndMgr windowCount];
+            for( uint i=0;i<c;++i) {
+                WFCWindow *wnd = [wndMgr windowAtIndex:i];
+                NSUInteger wid = WACGetSDLEventWindowID( &e);
+                if( [wnd windowID] == wid) {
+                    [wnd processEvent:&e];
+                    break;
+                }
+            }
         }
         [wacWindow draw];
         SDL_Delay( 33);
@@ -59,6 +73,24 @@ end:
     SDL_Quit();
     [pool release];
     return 0;
+}
+
+void WFCWindowInit();
+void WACInit() {
+    WFCWindowInit();
+}
+
+NSUInteger WACGetSDLEventWindowID( SDL_Event *e) {
+    switch( e->type) {
+        case SDL_MOUSEMOTION:
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+            return e->button.windowID;
+            break;
+        default: // TODO: add more
+            break;
+    }
+    return 99999;
 }
 
 NSString* WACFormat( NSString *fmt, ...) {

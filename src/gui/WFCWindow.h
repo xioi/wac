@@ -178,6 +178,7 @@ typedef struct WFCKey {
 }
 
 @property (readwrite) WFCWindowState state;
+@property (readonly) NSUInteger windowID;
 @property (readonly) int width;
 @property (readonly) int height;
 
@@ -196,3 +197,17 @@ typedef struct WFCKey {
 
 - (void)load;
 @end
+
+@interface WFCWindowManager : NSObject {
+    @private
+    NSMutableArray *windows;
+}
+
+- (NSUInteger)windowCount;
+- (WFCWindow*)windowAtIndex:(NSUInteger)index;
+
+- (void)addWindow:(WFCWindow*)window;
+- (void)removeWindow:(WFCWindow*)window;
+@end
+
+WFCWindowManager *WFCWindowManagerContext();

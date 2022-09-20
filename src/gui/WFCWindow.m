@@ -321,6 +321,10 @@ extern struct mat4 gProjectionMatrix;
 @synthesize width;
 @synthesize height;
 
+- (NSUInteger)windowID {
+    return SDL_GetWindowID( mount);
+}
+
 - (id)init {
     if( self = [super init]) {
         state = WFCFreeWindow;
@@ -563,3 +567,58 @@ extern struct mat4 gProjectionMatrix;
 
 }
 @end
+
+@implementation WFCWindowManager
+- (id)init {
+    if( self = [super init]) {
+        windows = [NSMutableArray new];
+    }
+    return self;
+}
+- (void)dealloc {
+    [windows release];
+    [super dealloc];
+}
+
+- (NSUInteger)windowCount {
+    return [windows count];
+}
+- (WFCWindow*)windowAtIndex:(NSUInteger)index {
+    if( index >= [windows count]) {
+        return nil;
+    }
+    return [windows objectAtIndex:index];
+}
+
+- (void)addWindow:(WFCWindow*)window {
+    __block BOOL exist = NO;
+    [windows enumerateObjectsUsingBlock:^( id obj, NSUInteger i, BOOL *stop) {
+        if( obj == window) {
+            exist = YES;
+            *stop = YES;
+            return;
+        }
+    }];
+    if( !exist) {
+        [windows addObject:window];
+    }
+}
+- (void)removeWindow:(WFCWindow*)window {
+    [windows removeObject:window];
+}
+@end
+
+static NSLock *gWindowManagerLock = nil;
+static WFCWindowManager *gWindowManager = nil;
+WFCWindowManager *WFCWindowManagerContext() {
+    [gWindowManagerLock lock];
+    if( gWindowManager == nil) {
+        gWindowManager = [WFCWindowManager new];
+    }
+    [gWindowManagerLock unlock];
+    return gWindowManager;
+}
+
+void WFCWindowInit() {
+    gWindowManagerLock = [NSLock new];
+}
