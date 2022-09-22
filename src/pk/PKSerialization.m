@@ -2,7 +2,7 @@
 #import <yaml.h>
 #import <objc/runtime.h>
 
-static const char *getPropertyType( objc_property_t property) {
+/* static const char *getPropertyType( objc_property_t property) {
     const char *attributes = property_getAttributes( property);
     char buffer[1 + strlen( attributes)];
     strcpy( buffer, attributes);
@@ -35,4 +35,4 @@ BOOL PKUnmarshalYAML( id object, NSData *src) {
         const char *type = getPropertyType( p);
         NSLog( @"%s %s", name, type);
     }
-}
+} */

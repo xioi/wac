@@ -1,5 +1,5 @@
 #import "WFCRender.h"
-#import "../glad/glad.h"
+#import "glad/glad.h"
 #import <plutosvg.h>
 #import <PKLoader.h>
 #import <PKFont.h>
@@ -311,17 +311,8 @@ NSMutableDictionary *gCachedImageDictionary;
 @synthesize height;
 
 + (instancetype)imageForPath:(NSString*)path {
-    //if( gCachedImageDictionary == NULL) {
-    //    gCachedImageDictionary = [[NSMutableDictionary alloc] init];
-    //}
-
     WFCTexture *txt;
-    //txt = [gCachedImageDictionary valueForKey:path];
-    //if( txt != NULL) {
-    //    return txt;
-    //}
     txt = [[WFCTexture alloc] initFromFile:path];
-    //[gCachedImageDictionary setValue:txt forKey:path];
     return txt;
 }
 - (id)init {

@@ -2,9 +2,9 @@
 #import <SDL.h>
 #import <stdarg.h>
 #import "glad/glad.h"
-#import "gui/WFCWindow.h"
-#import "gui/WFCRender.h"
-#import "gui/WFCLang.h"
+#import <WFCWindow.h>
+#import <WFCRender.h>
+#import <WFCLang.h>
 
 #define WAC_OPENGL_VERSION_MAJOR 3
 #define WAC_OPENGL_VERSION_MINOR 3
@@ -23,14 +23,14 @@ int main( int argc, char **argv) {
             width:width
             height:height
             flags:WFCResizable] autorelease];
-    WFCWindow *wacWindow2 =
+    /* WFCWindow *wacWindow2 =
         [[WFCWindow
             windowWithTitle:@"Waffle & Cookie2"
             width:width
             height:height
-            flags:WFCResizable] autorelease];
+            flags:WFCResizable] autorelease]; */
     
-    //[wacWindow makeCurrentGLWindow];
+    // [wacWindow makeCurrentGLWindow];
 
     int err = gladLoadGLLoader( SDL_GL_GetProcAddress);
     if( err == GL_FALSE) {
@@ -49,7 +49,7 @@ int main( int argc, char **argv) {
 
     WFCWindowManager *wndMgr = WFCWindowManagerContext();
     [wndMgr addWindow:wacWindow];
-    [wndMgr addWindow:wacWindow2];
+    // [wndMgr addWindow:wacWindow2];
 
     SDL_Event e;
     while( YES) {
@@ -57,8 +57,7 @@ int main( int argc, char **argv) {
             if( ![wndMgr processEvent:&e]) goto end;
             //if( ![wacWindow processEvent:&e]) goto end;
         }
-        [wacWindow draw];
-        [wacWindow2 draw];
+        [wndMgr draw];
         SDL_Delay( 33);
     }
 end:

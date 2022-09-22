@@ -5,7 +5,7 @@
 #import FT_FREETYPE_H
 #import <hb.h>
 #import <hb-ft.h>
-#import <../glad/glad.h>
+#import <glad/glad.h>
 #import <mathc.h>
 
 WFCTexture *txt;
@@ -288,36 +288,7 @@ float t = 0;
 }
 @end
 
-// // hb test
-// hb_buffer_t *buf;
-// hb_blob_t *blob;
-// hb_face_t *face;
-// hb_font_t *font;
-
-// FT_Library ft_library;
-// FT_Face ft_face;
-
-// uint glyph_txts[256];
-// struct {
-//     int width;
-//     int height;
-//     int by;
-//     int xadvance;
-// } glyph_infos[256];
-// NSMutableDictionary *glyph_index;
-
 extern uint gTextProgram;
-// static uint tvao, tbs[2];
-// const char text[] =
-//     "I can eat glass and it doesn't hurt me.\n"
-//     "我能吞下玻璃而不伤身体。\n"
-//     "我能吞下玻璃而不傷身體。\n"
-//     "私はガラスを食べられます。それは私を傷つけません。\n"
-//     "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요\n";       // CJK
-//     //"Я могу есть стекло, оно мне не вредит.\n"
-//     //"ຂອ້ຍກິນແກ້ວໄດ້ໂດຍທີ່ມັນບໍ່ໄດ້ເຮັດໃຫ້ຂອ້ຍເຈັບ.\n";
-//     //"Tôi có thể ăn thủy tinh mà không hại gì.\n";
-// NSString *text2;
 
 extern struct mat4 gProjectionMatrix;
 
@@ -367,8 +338,6 @@ static SDL_GLContext gGLContext;
 }
 
 - (void)load {
-    // glGenVertexArrays( 1, &tvao);
-    // glGenBuffers( 2, tbs);
 }
 
 + (instancetype)windowWithTitle:(NSString*)title width:(NSUInteger)w height:(NSUInteger)h flags:(WFCWindowFlags)f {
@@ -412,30 +381,29 @@ static SDL_GLContext gGLContext;
     return self;
 }
 - (void)dealloc {
-    // hb_buffer_destroy(buf);
-    // hb_font_destroy(font);
-    // hb_face_destroy(face);
-    // //hb_blob_destroy(blob);
-    // FT_Done_Face( ft_face);
-    // FT_Done_FreeType( ft_library);
-
-    // glDeleteTextures( 256, glyph_txts);
-    // [glyph_index release];
-
     [ctx release];
     [txt release];
     [super dealloc];
 }
 
 - (void)draw {
-    WFCRenderBegin();
     [self makeCurrentGLWindow];
 
     WFCClear( 1, 1, 1, 1);
     [ctx setOffset:WFCNewFPoint( 0, 0)];
     [container draw:ctx];
 
-    WFCRenderEnd();
+    /* [ctx setOffset:WFCNewFPoint( 0, 0)];
+    if( lastHoveringComponent != nil) {
+        WFCFRect r_focus = [lastHoveringComponent bounds];
+        WFCFPoint offset_focus = [lastHoveringComponent absolutePosition];
+        r_focus.x = offset_focus.x;
+        r_focus.y = offset_focus.y;
+        [ctx drawFilledRect:r_focus color:WFCNewColor( 1, 0, 0, 0.5)];
+    } */
+    [self swapWindow];
+}
+- (void)swapWindow {
     SDL_GL_SwapWindow( mount);
 }
 - (BOOL)processEvent:(SDL_Event*)e {
@@ -652,6 +620,12 @@ static SDL_GLContext gGLContext;
         }
     }
     return YES;
+}
+- (void)draw {
+    uint c = [self windowCount];
+    for( uint i=0;i<c;++i) {
+        [[self windowAtIndex:i] draw];
+    }
 }
 @end
 

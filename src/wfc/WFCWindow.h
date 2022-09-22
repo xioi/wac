@@ -170,13 +170,14 @@ typedef struct WFCKey {
 - (id)initWithTitle:(NSString*)title width:(NSUInteger)w height:(NSUInteger)h flags:(WFCWindowFlags)f;
 - (id)initFrom:(SDL_Window*)window;
 
-- (void)draw;
 - (BOOL)processEvent:(SDL_Event*)e;
 - (void)updateWindowStatus;
 
 - (void)didChangeSizeWithPreviousWidth:(int)pw andHeight:(int)ph;
 
 - (void)makeCurrentGLWindow;
+- (void)draw;
+- (void)swapWindow;
 
 - (void)load;
 @end
@@ -193,6 +194,7 @@ typedef struct WFCKey {
 - (void)removeWindow:(WFCWindow*)window;
 
 - (BOOL)processEvent:(SDL_Event*)e;
+- (void)draw;
 @end
 
 NSInteger WFCGetSDLEventWindowID( SDL_Event *e);

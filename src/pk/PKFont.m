@@ -5,19 +5,21 @@
 #import <hb-ft.h>
 
 static FT_Library ft_library;
-static BOOL doneInit = NO;
+static BOOL fontInitialized = NO;
 
 @implementation PKFont
-+ (void)init {
-    if( !doneInit) {
+@synthesize size;
+
++ (void)initialize {
+    if( !fontInitialized) {
         FT_Init_FreeType( &ft_library);
-        doneInit = YES;
+        fontInitialized = YES;
     }
 }
 + (void)cleanup {
-    if( doneInit) {
+    if( fontInitialized) {
         FT_Done_FreeType( ft_library);
-        doneInit = NO;
+        fontInitialized = NO;
     }
 }
 
@@ -28,29 +30,26 @@ static BOOL doneInit = NO;
     return self;
 }
 
-- (id)initFromMemory:(NSData*)data {
+- (id)initFromMemory:(NSData*)data size:(float)size_ {
     if( self = [self init]) {
+        if( [data bytes] == NULL) {
+            // TODO: load default font
+            return self;
+        }
         FT_New_Memory_Face( ft_library, [data bytes], [data length], 0, &face);
     }
     return self;
 }
-- (id)initFromFile:(NSString*)path {
-    if( self = [self init]) {
-        FT_New_Face( ft_library, [path UTF8String], 0, &face);
+- (id)initFromFile:(NSString*)path size:(float)size_ {
+    NSData *dat = [NSData dataWithContentsOfFile:path];
+    if( self = [self initFromMemory:dat size:size_]) {
     }
+    [dat release];
     return self;
 }
 - (void)dealloc {
     FT_Done_Face( face);
     [super dealloc];
-}
-
-- (long)size {
-    return size;
-}
-- (void)setSize:(long)size_ {
-    size = size_;
-    FT_Set_Char_Size( face, 0, size_, 0, 0);
 }
 
 - (PKGlyph*)glyphForCharacter:(long)c {
@@ -64,4 +63,13 @@ static BOOL doneInit = NO;
 
     return glyph;
 }
+@end
+
+@implementation PKGlyph
+@synthesize code;
+@synthesize width;
+@synthesize height;
+@synthesize xadvance;
+@synthesize yadvance;
+
 @end
