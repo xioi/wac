@@ -6,5 +6,6 @@ target_sources( panku PRIVATE
     "PKSerialization.m"
     "mathc.c"
 )
-target_include_directories( panku PUBLIC ".")
+message( STATUS ${WAC_OBJC_INCLUDE_DIR})
+target_include_directories( panku PUBLIC "." ${WAC_OBJC_INCLUDE_DIR})
 target_link_libraries( panku freetype harfbuzz harfbuzz::harfbuzz)

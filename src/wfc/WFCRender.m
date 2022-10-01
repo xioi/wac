@@ -5,7 +5,7 @@
 #import <PKFont.h>
 #import <mathc.h>
 
-uint gStandardProgram, gTextProgram;
+unsigned int gStandardProgram, gTextProgram;
 const char
     *gStandardVsSrc =
         "#version 330 core\n"
@@ -75,10 +75,10 @@ const char
         "}\n";
 
 
-uint gVao, gRectVbo, gRectIbo, gGeneralVbo, gGeneralIbo;
+unsigned int gVao, gRectVbo, gRectIbo, gGeneralVbo, gGeneralIbo;
 WFCTexture *gWhite, *gMissing;
 
-uint gSpriteVao, gSpriteVbo, gSpriteIbo;
+unsigned int gSpriteVao, gSpriteVbo, gSpriteIbo;
 
 typedef struct WFCVertex {
     float pos[3];
@@ -96,8 +96,8 @@ void configureStandardProgram() {
     glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof( WFCVertex), (void*)(5*sizeof( float)));
 }
 
-uint compileProgram( const char *vssrc, const char *fssrc) {
-    uint
+unsigned int compileProgram( const char *vssrc, const char *fssrc) {
+    unsigned int
         vs = glCreateShader( GL_VERTEX_SHADER),
         fs = glCreateShader( GL_FRAGMENT_SHADER);
     
@@ -105,7 +105,7 @@ uint compileProgram( const char *vssrc, const char *fssrc) {
     glShaderSource( fs, 1, &fssrc, NULL);
     glCompileShader( vs);
     glCompileShader( fs);
-    uint p = glCreateProgram();
+    unsigned int p = glCreateProgram();
     glAttachShader( p, vs);
     glAttachShader( p, fs);
     glLinkProgram( p);

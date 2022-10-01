@@ -1,11 +1,14 @@
 if( APPLE)
     set( nfd_src
-        "./wfc/nfd_common.c"
-        "./wfc/nfd_cocoa.m")
+        "wfc/nfd_common.c"
+        "wfc/nfd_cocoa.m")
+    
+    set( WAC_OBJC_INCLUDE_DIR "")
 elseif( WIN32)
     set( nfd_src
-        "./wfc/nfd_common.c"
-        "./wfc/nfd_win.cpp")
+        "wfc/nfd_common.c"
+        "wfc/nfd_win.cpp")
+    set( WAC_OBJC_INCLUDE_DIR "${WAC_GNUSTEP_ROOT}/System/Library/Headers")
 endif()
 
 add_subdirectory( plutosvg)
@@ -19,7 +22,7 @@ target_sources( wac PRIVATE
     ${nfd_src})
 
 target_link_libraries( wac PRIVATE wfc)
-target_compile_options( wac PRIVATE -fconstant-string-class=NSConstantString)
+target_compile_options( wac PRIVATE ${WAC_OBJC_FLAGS})
 set_target_properties( wac
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/"

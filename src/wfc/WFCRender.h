@@ -18,12 +18,12 @@ typedef struct WFCColor {
 
 @interface WFCTexture : NSObject {
     @private
-    uint handle;
+    unsigned int handle;
     NSUInteger width, height;
     BOOL complete;
 }
 
-@property (readonly) uint handle;
+@property (readonly) unsigned int handle;
 @property (readonly) NSUInteger width;
 @property (readonly) NSUInteger height;
 
@@ -57,4 +57,4 @@ void WFCOnViewportResized( int w, int h);
 
 void WFCClear( float r, float g, float b, float a);
 void WFCDrawRect( WFCFRect rect, WFCColor color);
-void WFCDrawTexture( uint raw, WFCFPoint pos);
+void WFCDrawTexture( unsigned int raw, WFCFPoint pos);

@@ -1,0 +1,3 @@
+[submodule "src/plutosvg"]
+	path = src/plutosvg
+	url = https://github.com/sammycage/plutosvg.git
