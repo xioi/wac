@@ -16,7 +16,7 @@ int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     WACInit();
 
-    const uint width = 800, height = 600;
+    const unsigned int width = 800, height = 600;
     WFCWindow *wacWindow =
         [[WFCWindow
             windowWithTitle:@"Waffle & Cookie"
@@ -89,9 +89,9 @@ NSString* WACFormat( NSString *fmt, ...) {
     }
     va_end( l);
     NSMutableString *r = [NSMutableString new];
-    uint begin = 0, ptr = 0, end = [fmt length];
+    unsigned int begin = 0, ptr = 0, end = [fmt length];
     while( ptr < end) {
-        uint fw = ptr;
+        unsigned int fw = ptr;
         while( fw <= end) {
             if( fw == end) {
                 [r appendString:[fmt substringWithRange:NSMakeRange( ptr - begin, fw - ptr)]];
@@ -100,7 +100,7 @@ NSString* WACFormat( NSString *fmt, ...) {
             if( [fmt characterAtIndex:fw] == '{') {
                 [r appendString:[fmt substringWithRange:NSMakeRange( ptr - begin, fw - ptr)]];
                 ++fw;
-                uint value = 0;
+                unsigned int value = 0;
                 while( [fmt characterAtIndex:fw] != '}') {
                     value *= 10;
                     value += [fmt characterAtIndex:fw] - '0';

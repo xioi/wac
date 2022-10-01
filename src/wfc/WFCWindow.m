@@ -288,7 +288,7 @@ float t = 0;
 }
 @end
 
-extern uint gTextProgram;
+extern NSUInteger gTextProgram;
 
 extern struct mat4 gProjectionMatrix;
 
@@ -407,7 +407,7 @@ static SDL_GLContext gGLContext;
     SDL_GL_SwapWindow( mount);
 }
 - (BOOL)processEvent:(SDL_Event*)e {
-    uint wnd_id = SDL_GetWindowID( mount);
+    NSUInteger wnd_id = SDL_GetWindowID( mount);
 
     switch( e->type) {
         case SDL_MOUSEBUTTONDOWN: { // 处理鼠标按下事件
@@ -605,9 +605,9 @@ static SDL_GLContext gGLContext;
 
 - (BOOL)processEvent:(SDL_Event*)e {
     if( e->type == SDL_QUIT) return NO;
-    uint c = [self windowCount];
+    NSUInteger c = [self windowCount];
     NSInteger wid = WFCGetSDLEventWindowID( e);
-    for( uint i=0;i<c;++i) {
+    for( NSUInteger i=0;i<c;++i) {
         WFCWindow *wnd = [self windowAtIndex:i];
         if( wid == -1) continue;
         if( wid == -2) {
@@ -622,8 +622,8 @@ static SDL_GLContext gGLContext;
     return YES;
 }
 - (void)draw {
-    uint c = [self windowCount];
-    for( uint i=0;i<c;++i) {
+    NSUInteger c = [self windowCount];
+    for( NSUInteger i=0;i<c;++i) {
         [[self windowAtIndex:i] draw];
     }
 }

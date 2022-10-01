@@ -22,7 +22,7 @@
     [data setObject:value forKey:identity_];
 }
 - (NSString*)valueOf:(NSString*)identity_ {
-    return data[identity_];
+    return [data objectForKey:identity_];
 }
 @end
 

@@ -4,13 +4,17 @@ project( wac C OBJC)
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON) # for ccls
 
 if( APPLE)
-    set( OBJC_LINK_FLAGS
+    set( WAC_OBJC_LINK_FLAGS
         -lobjc
         -framework Foundation)
 elseif( WIN32)
     # TODO:add Windows-supporting compiling environments
-    set( GNUSTEP_ROOT "")
-    set( OBJC_LINK_FLAGS
+    message( STATUS "Windows Platform")
+    option( WAC_GNUSTEP_ROOT "" "")
+    set( WAC_OBJC_FLAGS
+        -fconstant-string-class=NSConstantString
+        -fblocks)
+    set( WAC_OBJC_LINK_FLAGS
         -lobjc)
 endif()
 

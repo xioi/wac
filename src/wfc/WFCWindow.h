@@ -117,7 +117,7 @@ typedef struct WFCKey {
 
 @interface WFCGridLayouter : WFCLayouter {
     @private
-    int cloumn, row, rcap, ccap;
+    int columns, rows, rcap, ccap;
 }
 @property (readwrite) int rows; // row count
 @property (readwrite) int columns; // column count
@@ -153,7 +153,7 @@ typedef struct WFCKey {
     WFCComponent *lastHoveringComponent;
 
     BOOL mousePressing;
-    int wdith, height;
+    int width, height;
 }
 
 @property (readwrite) WFCWindowState state;
