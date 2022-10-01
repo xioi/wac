@@ -1,8 +1,6 @@
 #import "PKFont.h"
 #import <ft2build.h>
 #import FT_FREETYPE_H
-#import <hb.h>
-#import <hb-ft.h>
 
 static FT_Library ft_library;
 static BOOL fontInitialized = NO;

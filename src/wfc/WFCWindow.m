@@ -3,8 +3,6 @@
 
 #import <ft2build.h>
 #import FT_FREETYPE_H
-#import <hb.h>
-#import <hb-ft.h>
 #import <glad/glad.h>
 #import <mathc.h>
 

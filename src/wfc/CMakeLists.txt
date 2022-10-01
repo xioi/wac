@@ -10,4 +10,4 @@ target_sources( wfc PRIVATE
 target_compile_options( wfc PRIVATE ${WAC_OBJC_FLAGS})
 target_link_libraries( wfc PUBLIC
     SDL2::SDL2 SDL2::SDL2main SDL2::SDL2-static
-    freetype plutosvg yaml panku harfbuzz harfbuzz::harfbuzz)
+    freetype plutosvg yaml panku)
