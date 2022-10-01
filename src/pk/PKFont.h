@@ -5,11 +5,16 @@ typedef struct hb_buffer_t hb_buffer_t;
 typedef struct hb_face_t hb_face_t;
 typedef struct hb_font_t hb_font_t;
 
+// @protocol PKGlyphLoaderDelegate
+
+// @end
+
 @interface PKGlyph : NSObject {
     @private
     long code;
 
     int width, height, xadvance, yadvance;
+    NSData *data;
 }
 
 @property (readonly) long code;

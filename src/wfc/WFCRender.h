@@ -1,20 +1,20 @@
 #import <Foundation/Foundation.h>
 
-typedef struct WFCFRect {
-    float x, y, w, h;
-} WFCFRect;
-
 typedef struct WFCFPoint {
     float x, y;
 } WFCFPoint;
 
-typedef struct WFCColor {
-    float r, g, b, a;
-} WFCColor;
-
 typedef struct WFCFSize {
     float w, h;
 } WFCFSize;
+
+typedef struct WFCFRect { // TODO: -> WFCFPoint origin; WFCFSize size;
+    float x, y, w, h;
+} WFCFRect;
+
+typedef struct WFCColor {
+    float r, g, b, a;
+} WFCColor;
 
 @interface WFCTexture : NSObject {
     @private
@@ -41,10 +41,10 @@ typedef struct WFCFSize {
 - (void)drawAt:(WFCFPoint)pos xscale:(float)xscale yscale:(float)yscale angle:(float)angle;
 @end
 
-WFCFRect WFCNewFRect( float x, float y, float w, float h);
-WFCColor WFCNewColor( float r, float g, float b, float a);
 WFCFPoint WFCNewFPoint( float x, float y);
 WFCFSize WFCNewFSize( float w, float h);
+WFCFRect WFCNewFRect( float x, float y, float w, float h);
+WFCColor WFCNewColor( float r, float g, float b, float a);
 
 void WFCRenderSetup();
 void WFCRenderCleanup();
