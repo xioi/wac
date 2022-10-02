@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <PKFont.h>
 
 typedef struct WFCFPoint {
     float x, y;
@@ -8,8 +9,9 @@ typedef struct WFCFSize {
     float w, h;
 } WFCFSize;
 
-typedef struct WFCFRect { // TODO: -> WFCFPoint origin; WFCFSize size;
-    float x, y, w, h;
+typedef struct WFCFRect {
+    WFCFPoint origin;
+    WFCFSize size;
 } WFCFRect;
 
 typedef struct WFCColor {
@@ -39,6 +41,14 @@ typedef struct WFCColor {
 - (void)drawAt:(WFCFPoint)pos angle:(float)angle;
 - (void)drawAt:(WFCFPoint)pos width:(float)ww height:(float)hh angle:(float)angle;
 - (void)drawAt:(WFCFPoint)pos xscale:(float)xscale yscale:(float)yscale angle:(float)angle;
+@end
+
+@interface WFCFont : NSObject {
+    @private
+    PKFont *font;
+}
+- (id)initWithFont:(PKFont*)font;
+// TODO:
 @end
 
 WFCFPoint WFCNewFPoint( float x, float y);

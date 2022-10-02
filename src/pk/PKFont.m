@@ -91,6 +91,7 @@ static BOOL fontInitialized = NO;
 @end
 
 @implementation PKGlyph
+@synthesize data;
 @synthesize code;
 @synthesize width;
 @synthesize height;

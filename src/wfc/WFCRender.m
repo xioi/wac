@@ -181,7 +181,8 @@ void WFCRenderCleanup() {
 
 WFCFRect WFCNewFRect( float x, float y, float w, float h) {
     WFCFRect r;
-    r.x = x;r.y = y; r.w = w;r.h = h;
+    r.origin = WFCNewFPoint( x, y);
+    r.size = WFCNewFSize( w, h);
     return r;
 }
 WFCColor WFCNewColor( float r, float g, float b, float a) {
@@ -238,9 +239,9 @@ void WFCClear( float r, float g, float b, float a) {
 }
 void WFCDrawRect( WFCFRect rect, WFCColor color) {
     WFCFPoint p1, p2, p3, p4;
-    p1.x = rect.x;p1.y = rect.y;
-    p2.x = rect.x + rect.w;p2.y = rect.y;
-    p3.x = rect.x;p3.y = rect.y + rect.h;
+    p1.x = rect.origin.x;p1.y = rect.origin.y;
+    p2.x = rect.origin.x + rect.size.w;p2.y = rect.origin.y;
+    p3.x = rect.origin.x;p3.y = rect.origin.y + rect.size.h;
     p4.x = p2.x;p4.y = p3.y;
 
     struct mat4 offsetMatrix = smat4_translate_direct( svec3( gOffset.x, gOffset.y, 0)), b;
@@ -298,8 +299,8 @@ void WFCDrawElements( float *vertexs, int *indexs, int index_count, int vertex_c
 
 WFCFRect transformFRectViaOffset( WFCFRect r) {
     WFCFRect rrr = r;
-    rrr.x += gOffset.x;
-    rrr.y += gOffset.y;
+    rrr.origin.x += gOffset.x;
+    rrr.origin.y += gOffset.y;
     return rrr;
 }
 
@@ -415,5 +416,14 @@ NSMutableDictionary *gCachedImageDictionary;
     glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray( 0);
+}
+@end
+
+@implementation WFCFont
+- (id)initWithFont:(PKFont*)font_ {
+    if( self = [self init]) {
+        font = font_;
+    }
+    return self;
 }
 @end

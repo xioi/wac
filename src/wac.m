@@ -5,6 +5,7 @@
 #import <WFCWindow.h>
 #import <WFCRender.h>
 #import <WFCLang.h>
+#import <PKException.h>
 
 #define WAC_OPENGL_VERSION_MAJOR 3
 #define WAC_OPENGL_VERSION_MINOR 3
@@ -23,39 +24,23 @@ int main( int argc, char **argv) {
             width:width
             height:height
             flags:WFCResizable] autorelease];
-    /* WFCWindow *wacWindow2 =
-        [[WFCWindow
-            windowWithTitle:@"Waffle & Cookie2"
-            width:width
-            height:height
-            flags:WFCResizable] autorelease]; */
-    
-    // [wacWindow makeCurrentGLWindow];
 
     int err = gladLoadGLLoader( SDL_GL_GetProcAddress);
     if( err == GL_FALSE) {
-        NSLog( @"This graphics device doesn't support OpenGL %d.%d.", WAC_OPENGL_VERSION_MAJOR, WAC_OPENGL_VERSION_MINOR);
-        exit( 1);
+        PKRuntimeError( @"This graphics device doesn't support OpenGL %d.%d.", WAC_OPENGL_VERSION_MAJOR, WAC_OPENGL_VERSION_MINOR);
+        PKExit( 1);
     }
-    
-    glEnable( GL_BLEND);
-    glDisable( GL_DEPTH_TEST);
-    glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    [wacWindow load];
     WFCRenderSetup();
     WFCOnViewportResized( width, height);
 
     WFCWindowManager *wndMgr = WFCWindowManagerContext();
     [wndMgr addWindow:wacWindow];
-    // [wndMgr addWindow:wacWindow2];
 
     SDL_Event e;
     while( YES) {
         while( SDL_PollEvent( &e)) {
             if( ![wndMgr processEvent:&e]) goto end;
-            //if( ![wacWindow processEvent:&e]) goto end;
         }
         [wndMgr draw];
         SDL_Delay( 33);
@@ -76,8 +61,12 @@ void WACInit() {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, WAC_OPENGL_VERSION_MINOR);
 
     WFCWindowInit();
+#ifdef WAC_DEBUG
+    NSLog( @"[DEBUG] Waffle & Cookie (OpenGL%d.%d) Initialized.", WAC_OPENGL_VERSION_MAJOR, WAC_OPENGL_VERSION_MINOR);
+#endif
 }
 
+// NSLog( @"%@", WACFormat( @"{0} {1} {0}", @"0", @"1")); ---> "0 1 0"
 NSString* WACFormat( NSString *fmt, ...) {
     NSString *args[128], *now;
     int i=0;

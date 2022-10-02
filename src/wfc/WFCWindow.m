@@ -51,18 +51,18 @@ float t = 0;
     ap.x = 0; ap.y = 0;
     if( [self parent] != nil) {
         WFCFRect pb = [parent bounds];
-        ap.x += pb.x;
-        ap.y += pb.y;
+        ap.x += pb.origin.x;
+        ap.y += pb.origin.y;
     }
-    ap.x += mBounds.x;
-    ap.y += mBounds.y;
+    ap.x += mBounds.origin.x;
+    ap.y += mBounds.origin.y;
     return ap;
 }
 
 - (BOOL)hitTest:(WFCFPoint)point {
     WFCFPoint ap = [self absolutePosition];
     point.x -= ap.x; point.y -= ap.y;
-    if( (point.x >= 0 && point.x <= mBounds.w) && (point.y >= 0 && point.y <= mBounds.h)) {
+    if( (point.x >= 0 && point.x <= mBounds.size.w) && (point.y >= 0 && point.y <= mBounds.size.h)) {
         return YES;
     }else {
         return NO;
@@ -74,11 +74,11 @@ float t = 0;
 }
 
 - (void)setLocation:(WFCFPoint)location {
-    [self setBounds:WFCNewFRect( location.x, location.y, mBounds.w, mBounds.h)];
+    [self setBounds:WFCNewFRect( location.x, location.y, mBounds.size.w, mBounds.size.h)];
 }
 
 - (void)setSize:(WFCFSize)size {
-    [self setBounds:WFCNewFRect( mBounds.x, mBounds.y, size.w, size.h)];
+    [self setBounds:WFCNewFRect( mBounds.origin.x, mBounds.origin.y, size.w, size.h)];
 }
 
 - (void)setBounds:(WFCFRect)bounds_ {
@@ -199,7 +199,7 @@ float t = 0;
 }
 - (void)draw:(WFCDrawContext*)ctx {
     WFCDrawContext *c2 = [ctx clone];
-    [c2 addOffset:WFCNewFPoint( [self bounds].x, [self bounds].y)];
+    [c2 addOffset:WFCNewFPoint( [self bounds].origin.x, [self bounds].origin.y)];
     NSUInteger c = [self componentCount];
     for( int i=0;i<c;++i) {
         [[self componentForIndex:i] draw:c2];
@@ -241,7 +241,7 @@ float t = 0;
         WFCFSize pSize = [component preferredSize];
 
         //NSLog( @"%.2f %.2f", np.x + pSize.w + rcap, [container bounds].w);
-        if( np.x + pSize.w + rcap > [container bounds].w) {
+        if( np.x + pSize.w + rcap > [container bounds].size.w) {
             np.x = rcap;
             np.y += lmh + ccap;
         }
@@ -272,7 +272,7 @@ float t = 0;
 - (void)layoutComponents:(WFCContainer*)container {
     const NSUInteger c = [container componentCount];
     const WFCFRect siz = [container bounds];
-    int cw = (siz.w - ccap - columns * ccap) / columns, ch = (siz.h - rcap - rows * rcap) / rows;
+    int cw = (siz.size.w - ccap - columns * ccap) / columns, ch = (siz.size.h - rcap - rows * rcap) / rows;
     int cc = 0, rc = 0;
     for( int i=0;i<c;++i) {
         if( cc >= columns) {
@@ -333,9 +333,6 @@ static SDL_GLContext gGLContext;
         lastHoveringComponent = nil;
     }
     return self;
-}
-
-- (void)load {
 }
 
 + (instancetype)windowWithTitle:(NSString*)title width:(NSUInteger)w height:(NSUInteger)h flags:(WFCWindowFlags)f {
@@ -560,6 +557,10 @@ static SDL_GLContext gGLContext;
     // TODO:add a more general method
 
 }
+- (void)drawText:(NSString*)text at:(WFCFPoint)origin font:(PKFont*)font {
+    // TODO:
+    
+}
 @end
 
 @implementation WFCWindowManager
@@ -620,6 +621,10 @@ static SDL_GLContext gGLContext;
     return YES;
 }
 - (void)draw {
+    glEnable( GL_BLEND);
+    glDisable( GL_DEPTH_TEST);
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     NSUInteger c = [self windowCount];
     for( NSUInteger i=0;i<c;++i) {
         [[self windowAtIndex:i] draw];

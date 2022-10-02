@@ -1,4 +1,5 @@
 #import <SDL.h>
+#import <PKFont.h>
 #import "WFCRender.h"
 #import "WFCLang.h"
 #import "WFCUIEvent.h"
@@ -41,6 +42,7 @@ typedef struct WFCKey {
 
 - (void)drawFilledRect:(WFCFRect)rect color:(WFCColor)col;
 - (void)drawImage:(WFCTexture*)txt at:(WFCFPoint)pos;
+- (void)drawText:(NSString*)text at:(WFCFPoint)origin font:(PKFont*)font;
 @end
 
 @class WFCContainer;
@@ -178,8 +180,6 @@ typedef struct WFCKey {
 - (void)makeCurrentGLWindow;
 - (void)draw;
 - (void)swapWindow;
-
-- (void)load;
 @end
 
 @interface WFCWindowManager : NSObject {
