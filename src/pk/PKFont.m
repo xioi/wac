@@ -30,9 +30,25 @@ static BOOL fontInitialized = NO;
     }
 }
 
+- (NSString*)familyName {
+    if( face != NULL) {
+        return @(face->family_name);
+    }else {
+        return @"[Font not loaded]";
+    }
+}
+- (NSString*)styleName {
+    if( face != NULL) {
+        return @(face->style_name);
+    }else {
+        return @"[Font not loaded]";
+    }
+}
+
 - (id)init {
     if( self = [super init]) {
         glyphs = [NSMutableDictionary new];
+        face = NULL;
     }
     return self;
 }
@@ -62,7 +78,13 @@ static BOOL fontInitialized = NO;
 }
 
 - (PKGlyph*)glyphForCharacter:(long)c {
+    // Do some hash and ...
+    // make sure this single character to be stored
+    // as a NSString so NSDictionary can find it.
+    // (It requires NSString. A bit strange, huh?
+    //  I even cannot use NSNumber...)
     NSString *key = [NSString stringWithFormat:@"%c", (unichar)c];
+    // NSNumber *key = [NSNumber numberWithLong:c];
 
     PKGlyph *glyph = [glyphs objectForKey:key];
     if( glyph == NULL) { // cache missed, then create and remember
@@ -81,12 +103,12 @@ static BOOL fontInitialized = NO;
     const char *raw = (const char*)bm->buffer;
     NSUInteger buffer_size = bm->pitch * bm->rows;
     
-    [glyph fillData:raw length:buffer_size];
     [glyph setCode:code];
     [glyph setWidth:bm->width];
     [glyph setHeight:bm->rows];
     [glyph setXAdvance:face->glyph->advance.x];
     [glyph setYAdvance:face->glyph->advance.y];
+    [glyph fillData:raw length:buffer_size];
 }
 @end
 
@@ -100,7 +122,7 @@ static BOOL fontInitialized = NO;
 
 - (id)init {
     if( self = [super init]) {
-        data = [NSData new];
+        data = [NSData alloc];
     }
     return self;
 }
@@ -109,11 +131,13 @@ static BOOL fontInitialized = NO;
     [super dealloc];
 }
 
+- (void)glyphDidFillData {}
 @end
 
 @implementation PKGlyph (Loading)
 - (void)fillData:(const char*)ptr length:(NSUInteger)length {
     data = [data initWithBytes:ptr length:length];
+    [self glyphDidFillData];
 }
 - (void)setCode:(long)code_ {
     code = code_;

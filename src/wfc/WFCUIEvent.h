@@ -1,4 +1,5 @@
-#import "WFCRender.h"
+//#import "WFCRender.h"
+#import <Foundation/Foundation.h>
 
 typedef NS_ENUM( NSUInteger, WFCMouseEventType) {
     WFCMouseMotion = 0,

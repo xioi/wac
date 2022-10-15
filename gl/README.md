@@ -1,0 +1,3 @@
+本目录下的OpenGL的shader文件不会在运行时加载
+
+你需要手动将文件内容复制到src/renderers/gl/WFCGLRenderer.m中

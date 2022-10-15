@@ -3,12 +3,10 @@
 #import <stdarg.h>
 #import "glad/glad.h"
 #import <WFCWindow.h>
-#import <WFCRender.h>
+//#import <WFCRender.h>
 #import <WFCLang.h>
 #import <PKException.h>
-
-#define WAC_OPENGL_VERSION_MAJOR 3
-#define WAC_OPENGL_VERSION_MINOR 3
+#import <renderers/gl/WFCGLRenderer.h>
 
 NSString* WACFormat( NSString *fmt, ...);
 void WACInit();
@@ -27,12 +25,9 @@ int main( int argc, char **argv) {
 
     int err = gladLoadGLLoader( SDL_GL_GetProcAddress);
     if( err == GL_FALSE) {
-        PKRuntimeError( @"This graphics device doesn't support OpenGL %d.%d.", WAC_OPENGL_VERSION_MAJOR, WAC_OPENGL_VERSION_MINOR);
+        PKRuntimeError( @"This graphics device doesn't support OpenGL %d.%d.", WFC_OPENGL_VERSION_MAJOR, WFC_OPENGL_VERSION_MINOR);
         PKExit( 1);
     }
-
-    WFCRenderSetup();
-    WFCOnViewportResized( width, height);
 
     WFCWindowManager *wndMgr = WFCWindowManagerContext();
     [wndMgr addWindow:wacWindow];
@@ -46,23 +41,17 @@ int main( int argc, char **argv) {
         SDL_Delay( 33);
     }
 end:
-    WFCRenderCleanup();
-    SDL_Quit();
+    [WFCGLRenderer cleanup];
     [pool release];
     return 0;
 }
 
 void WFCWindowInit();
 void WACInit() {
-    SDL_Init( SDL_INIT_EVERYTHING);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, WAC_OPENGL_VERSION_MAJOR);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, WAC_OPENGL_VERSION_MINOR);
-
+    [WFCGLRenderer initialize];
     WFCWindowInit();
 #ifdef WAC_DEBUG
-    NSLog( @"[DEBUG] Waffle & Cookie (OpenGL%d.%d) Initialized.", WAC_OPENGL_VERSION_MAJOR, WAC_OPENGL_VERSION_MINOR);
+    NSLog( @"[DEBUG] Waffle & Cookie (OpenGL%d.%d) Initialized.", WFC_OPENGL_VERSION_MAJOR, WFC_OPENGL_VERSION_MINOR);
 #endif
 }
 

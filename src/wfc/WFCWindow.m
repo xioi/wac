@@ -1,294 +1,22 @@
 #import "WFCWindow.h"
-#import "WFCRender.h"
+//#import "WFCRender.h"
 
 #import <ft2build.h>
 #import FT_FREETYPE_H
 #import <glad/glad.h>
 #import <mathc.h>
 
+#import "renderers/gl/WFCGLRenderer.h"
+
 WFCTexture *txt;
 float t = 0;
-
-@implementation WFCComponent
-@synthesize root;
-@synthesize parent;
-@synthesize isHovering;
-
-- (NSString*)uiName {
-    return @"WFCComponentUI";
-}
-
-- (BOOL)focusable {
-    return NO;
-}
-
-- (void)requestFocus {
-    // TODO: request focus
-}
-
-- (void)mouseEnter:(WFCMouseEvent)e {
-    isHovering = YES;
-    [self didMouseEnter:e];
-}
-- (void)mouseExit:(WFCMouseEvent)e {
-    isHovering = NO;
-    [self didMouseExit:e];
-}
-- (void)mouseDown:(WFCMouseEvent)e {
-    [self didMouseDown:e];
-}
-- (void)mouseUp:(WFCMouseEvent)e {
-    [self didMouseUp:e];
-}
-
-- (void)didMouseEnter:(WFCMouseEvent)e {}
-- (void)didMouseExit:(WFCMouseEvent)e {}
-- (void)didMouseDown:(WFCMouseEvent)e {}
-- (void)didMouseUp:(WFCMouseEvent)e {}
-
-- (WFCFPoint)absolutePosition {
-    WFCFPoint ap;
-    ap.x = 0; ap.y = 0;
-    if( [self parent] != nil) {
-        WFCFRect pb = [parent bounds];
-        ap.x += pb.origin.x;
-        ap.y += pb.origin.y;
-    }
-    ap.x += mBounds.origin.x;
-    ap.y += mBounds.origin.y;
-    return ap;
-}
-
-- (BOOL)hitTest:(WFCFPoint)point {
-    WFCFPoint ap = [self absolutePosition];
-    point.x -= ap.x; point.y -= ap.y;
-    if( (point.x >= 0 && point.x <= mBounds.size.w) && (point.y >= 0 && point.y <= mBounds.size.h)) {
-        return YES;
-    }else {
-        return NO;
-    }
-}
-
-- (WFCFSize)preferredSize {
-    return WFCNewFSize( rand() % 40 + 80, rand() % 80 + 80); // FIXME: to default size 100x100
-}
-
-- (void)setLocation:(WFCFPoint)location {
-    [self setBounds:WFCNewFRect( location.x, location.y, mBounds.size.w, mBounds.size.h)];
-}
-
-- (void)setSize:(WFCFSize)size {
-    [self setBounds:WFCNewFRect( mBounds.origin.x, mBounds.origin.y, size.w, size.h)];
-}
-
-- (void)setBounds:(WFCFRect)bounds_ {
-    mBounds = bounds_;
-}
-
-- (WFCFRect)bounds {
-    return mBounds;
-}
-
-- (void)draw:(WFCDrawContext*)ctx {
-    // TODO:
-    [ctx drawFilledRect:mBounds color:WFCNewColor( 0.7, 0, 0.7, 1)];
-}
-@end
-
-@interface WFCInternalComponent : NSObject {
-    @private
-    WFCComponent *component;
-    NSInteger attribute;
-}
-
-@property (readwrite, assign) WFCComponent *component;
-@property (readwrite) NSInteger attribute;
-@end
-
-@implementation WFCInternalComponent
-@synthesize component;
-@synthesize attribute;
-@end
-
-@implementation WFCContainer
-- (id)init {
-    if( self = [super init]) {
-        layouter = NULL;
-        components = [NSMutableArray new];
-    }
-    return self;
-}
-- (id)initWithLayouter:(WFCLayouter*)l {
-    if( self = [self init]) {
-        [self setLayouter:l];
-    }
-    return self;
-}
-- (void)dealloc {
-    [components release];
-    [super dealloc];
-}
-
-- (WFCLayouter*)layouter {
-    return layouter;
-}
-- (void)setLayouter:(WFCLayouter*)ll {
-    layouter = ll;
-    [layouter layoutComponents:self];
-}
-
-- (void)addComponent:(WFCComponent*)component {
-    [self addComponent:component attribute:-1];
-}
-- (void)addComponent:(WFCComponent*)component attribute:(NSInteger)addition {
-    WFCInternalComponent *ic = [WFCInternalComponent new];
-    [ic setComponent:component];
-    [ic setAttribute:addition];
-
-    [component setRoot:[self root]];
-    [component setParent:self];
-
-    [components addObject:ic];
-    [ic release];
-
-    // XXX: Always re-layout as long as a new component is inserted?
-    //NSLog( @"%d", self);
-    [layouter layoutComponents:self];
-}
-
-- (void)removeComponent:(WFCComponent*)component {
-    __block id target = NULL;
-    [components enumerateObjectsUsingBlock:^( id _Nonnull o, NSUInteger i, BOOL * _Nonnull e) {
-        if( [o component] == component) {
-            *e = YES;
-            target = o;
-        }
-    }];
-
-    if( target == NULL) return;
-    [components removeObject:target];
-}
-- (WFCComponent*)componentForIndex:(NSUInteger)index {
-    WFCInternalComponent *ic = [components objectAtIndex:index];
-    if( ic == NULL) return NULL;
-    return [ic component];
-}
-- (NSInteger)componentAttributeForIndex:(NSUInteger)index {
-    WFCInternalComponent *ic = [components objectAtIndex:index];
-    if( ic == NULL) return -1;
-    return [ic attribute];
-}
-- (NSUInteger)componentCount {
-    return [components count];
-}
-
-- (WFCComponent*)mouseHit:(WFCFPoint)point {
-    __block WFCComponent *target = nil;
-    [components enumerateObjectsUsingBlock:^( id _Nonnull obj, NSUInteger i, BOOL * _Nonnull ret) {
-        WFCComponent *component_ = [obj component];
-        if( [component_ hitTest:point]) {
-            target = component_;
-            *ret = YES;
-        }
-    }];
-    return target;
-}
-
-- (void)layout {
-    [layouter layoutComponents:self];
-}
-- (void)draw:(WFCDrawContext*)ctx {
-    WFCDrawContext *c2 = [ctx clone];
-    [c2 addOffset:WFCNewFPoint( [self bounds].origin.x, [self bounds].origin.y)];
-    NSUInteger c = [self componentCount];
-    for( int i=0;i<c;++i) {
-        [[self componentForIndex:i] draw:c2];
-    }
-    [c2 release];
-}
-@end
-
-@implementation WFCLayouter
-- (void)layoutComponents:(WFCContainer*)container {
-
-}
-@end
-
-@implementation WFCFlowLayouter
-@synthesize rcap;
-@synthesize ccap;
-
-- (id)init {
-    if( self = [self initWithRowCap:1 columnCap:1]) {
-
-    }
-    return self;
-}
-- (id)initWithRowCap:(int)rcap_ columnCap:(int)ccap_{
-    if( self = [super init]) {
-        rcap = rcap_;
-        ccap = ccap_;
-    }
-    return self;
-}
-- (void)layoutComponents:(WFCContainer*)container {
-    WFCFPoint np;
-    np.x = rcap;np.y = ccap;
-    int lmh = 0;
-    const NSUInteger c = [container componentCount];
-    for( int i=0;i<c;++i) {
-        WFCComponent *component = [container componentForIndex:i];
-        WFCFSize pSize = [component preferredSize];
-
-        //NSLog( @"%.2f %.2f", np.x + pSize.w + rcap, [container bounds].w);
-        if( np.x + pSize.w + rcap > [container bounds].size.w) {
-            np.x = rcap;
-            np.y += lmh + ccap;
-        }
-        [component setBounds:WFCNewFRect( np.x, np.y, pSize.w, pSize.h)];
-        np.x += pSize.w + rcap;
-
-        if( pSize.h > lmh) lmh = pSize.h;
-    }
-}
-@end
-
-@implementation WFCGridLayouter
-@synthesize rows;
-@synthesize columns;
-@synthesize rcap;
-@synthesize ccap;
-
-- (id)initWithRows:(int)rows_ columns:(int)columns_ rowCap:(int)rcap_ columnCap:(int)ccap_ {
-    if( self = [self init]) {
-        rcap = rcap_;
-        ccap = ccap_;
-        rows = rows_;
-        columns = columns_;
-    }
-    return self;
-}
-
-- (void)layoutComponents:(WFCContainer*)container {
-    const NSUInteger c = [container componentCount];
-    const WFCFRect siz = [container bounds];
-    int cw = (siz.size.w - ccap - columns * ccap) / columns, ch = (siz.size.h - rcap - rows * rcap) / rows;
-    int cc = 0, rc = 0;
-    for( int i=0;i<c;++i) {
-        if( cc >= columns) {
-            rc += 1;
-            cc = 0;
-        }
-        WFCComponent *component = [container componentForIndex:i];
-        [component setBounds:WFCNewFRect( (cc + 1) * ccap + cc * cw, (rc + 1) * rcap + rc * ch, cw, ch )];
-        ++cc;
-    }
-}
-@end
 
 extern NSUInteger gTextProgram;
 
 extern struct mat4 gProjectionMatrix;
+
+WFCGLRenderer *renderer;
+WFCTexture *texture;
 
 static SDL_GLContext gGLContext;
 @implementation WFCWindow
@@ -297,10 +25,10 @@ static SDL_GLContext gGLContext;
 @synthesize height;
 @synthesize mousePressing;
 
-- (WFCFPoint)position {
+- (WFCPoint)position {
     int wx, wy;
     SDL_GetWindowPosition( mount, &wx, &wy);
-    return WFCNewFPoint( wx, wy);
+    return WFCSPoint( wx, wy);
 }
 - (int)x {
     return (int)[self position].x;
@@ -324,7 +52,7 @@ static SDL_GLContext gGLContext;
         for( int i=0;i<20;++i) {
             [container addComponent:
                 [[WFCColoredQuadComponent alloc] initWithColor:
-                    WFCNewColor(
+                    WFCSColor(
                         (rand() % 256) / 256.0f,
                         (rand() % 256) / 256.0f,
                         (rand() % 256) / 256.0f, 1)]];
@@ -382,20 +110,20 @@ static SDL_GLContext gGLContext;
 }
 
 - (void)draw {
+    if( renderer == NULL) {
+        renderer = [WFCGLRenderer new];
+        texture = [WFCTexture new];
+        texture->name = @"tewi.png";
+        [renderer loadTexture:texture];
+    }
+
     [self makeCurrentGLWindow];
 
-    WFCClear( 1, 1, 1, 1);
-    [ctx setOffset:WFCNewFPoint( 0, 0)];
-    [container draw:ctx];
-
-    /* [ctx setOffset:WFCNewFPoint( 0, 0)];
-    if( lastHoveringComponent != nil) {
-        WFCFRect r_focus = [lastHoveringComponent bounds];
-        WFCFPoint offset_focus = [lastHoveringComponent absolutePosition];
-        r_focus.x = offset_focus.x;
-        r_focus.y = offset_focus.y;
-        [ctx drawFilledRect:r_focus color:WFCNewColor( 1, 0, 0, 0.5)];
-    } */
+    [renderer renderBegin];
+    [renderer drawFilledRectAt:svec2( 10, 10) size:svec2( 200, 200) color:WFCSColor( 1, 1, 1, 1)];
+    [renderer drawTexturedRectAt:svec2( 10, 220) size:svec2( 200, 200) texture:texture];
+    [renderer flush];
+    [renderer renderEnd];
     [self swapWindow];
 }
 - (void)swapWindow {
@@ -427,7 +155,7 @@ static SDL_GLContext gGLContext;
             break;
         }
         case SDL_MOUSEMOTION: {
-            WFCComponent *hover = [container mouseHit:WFCNewFPoint( e->button.x, e->button.y)];
+            WFCControl *hover = [container mouseHit:WFCSPoint( e->button.x, e->button.y)];
             WFCMouseEvent mouseevent;
                 mouseevent.x = e->button.x;
                 mouseevent.y = e->button.y;
@@ -454,9 +182,9 @@ static SDL_GLContext gGLContext;
 
 - (void)didChangeSizeWithPreviousWidth:(int)pw andHeight:(int)ph {
     //NSLog( @"%d %d", width, height);
-    [container setBounds:WFCNewFRect( 10, 10, width - 20, height - 20)];
+    [container setBounds:WFCSRect( 10, 10, width - 20, height - 20)];
     [container layout];
-    WFCOnViewportResized( width, height);
+    //WFCDidViewportResize( width, height);
 }
 
 - (void)updateWindowStatus {
@@ -481,8 +209,10 @@ static SDL_GLContext gGLContext;
     return self;
 }
 - (void)draw:(WFCDrawContext*)ctx {
+    /*
     [ctx drawFilledRect:[self bounds] color:WFCNewColor( 0.7, 0.7, 0.7, 1)];
     [super draw:ctx];
+    */
 }
 @end
 
@@ -493,8 +223,8 @@ static SDL_GLContext gGLContext;
     return @"WFCColoredQuadComponentUI";
 }
 
-- (WFCFSize)preferredSize {
-    return WFCNewFSize( 100, 100);
+- (WFCSize)preferredSize {
+    return WFCSSize( 100, 100);
 }
 
 - (id)initWithColor:(WFCColor)color_ {
@@ -537,27 +267,29 @@ static SDL_GLContext gGLContext;
     return [[WFCDrawContext alloc] initFromContext:self];
 }
 
-- (void)setOffset:(WFCFPoint)offset_2 {
+- (void)setOffset:(WFCPoint)offset_2 {
+    /*
     WFCSetOffset( offset_2);
     offset_ = offset_2;
+    */
 }
-- (void)addOffset:(WFCFPoint)addition {
+- (void)addOffset:(WFCPoint)addition {
     offset_.x += addition.x;
     offset_.y += addition.y;
     [self setOffset:offset_];
 }
-- (WFCFPoint)offset {
+- (WFCPoint)offset {
     return offset_;
 }
 
-- (void)drawFilledRect:(WFCFRect)rect color:(WFCColor)col {
-    WFCDrawRect( rect, col);
+- (void)drawFilledRect:(WFCRect)rect color:(WFCColor)col {
+    //WFCDrawRect( rect, col);
 }
-- (void)drawImage:(WFCTexture*)txt at:(WFCFPoint)pos {
+- (void)drawImage:(WFCTexture*)txt at:(WFCPoint)pos {
     // TODO:add a more general method
 
 }
-- (void)drawText:(NSString*)text at:(WFCFPoint)origin font:(PKFont*)font {
+- (void)drawText:(NSString*)text at:(WFCPoint)origin font:(PKFont*)font {
     // TODO:
     
 }
@@ -621,10 +353,6 @@ static SDL_GLContext gGLContext;
     return YES;
 }
 - (void)draw {
-    glEnable( GL_BLEND);
-    glDisable( GL_DEPTH_TEST);
-    glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     NSUInteger c = [self windowCount];
     for( NSUInteger i=0;i<c;++i) {
         [[self windowAtIndex:i] draw];

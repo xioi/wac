@@ -20,15 +20,18 @@ typedef struct hb_font_t hb_font_t;
 @property (readonly) int xadvance;
 @property (readonly) int yadvance;
 
+- (void)glyphDidFillData;
 @end
 
 @interface PKFont : NSObject {
-    @private
+    @protected
     FT_Face face;
     NSMutableDictionary *glyphs;
     float size;
 }
 
+@property (readonly) NSString *familyName;
+@property (readonly) NSString *styleName;
 @property (readonly) float size;
 
 + (void)initialize;
@@ -38,4 +41,5 @@ typedef struct hb_font_t hb_font_t;
 - (id)initFromFile:(NSString*)path size:(float)size;
 
 - (PKGlyph*)glyphForCharacter:(long)c;
+- (void)loadGlyph:(PKGlyph*)glyph code:(unichar)code;
 @end
