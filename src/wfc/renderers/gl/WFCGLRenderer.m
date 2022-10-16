@@ -322,16 +322,32 @@ struct WFCGLFontData {
     }
     glBindVertexArray( 0);
 }
-- (struct vec2)measureText:(NSString*)text font:(id)font {
-    // TODO:
-    return svec2( 0, 0);
+- (struct vec2)measureText:(NSString*)text font:(WFCFont*)font {
+    struct vec2 curpos;
+    float maxwidth = 0;
+    WFCGLFont *f = ((struct WFCGLFontData*)(font->data))->innerFont;
+    float fh = [f size];
+    NSUInteger length;
+    for( NSUInteger i=0;i<length;++i) {
+        unichar c = [text characterAtIndex:i];
+        WFCGLGlyph *g = (WFCGLGlyph*)[f glyphForCharacter:c];
+
+        if( c == '\n') {
+            curpos.x = 0;
+            curpos.y += fh;
+            continue;
+        }
+
+        curpos.x += [g width];
+        maxwidth = (curpos.x > maxwidth) ? curpos.x : maxwidth;
+    }
+    return svec2( maxwidth, curpos.y);
 }
 - (void)setResolution:(WFCSize)resolution_ {
     [super setResolution:resolution_];
     [self updateProjectionMatrix];
 }
 - (void)updateProjectionMatrix {
-    //struct mat4 mat;
     mat4_ortho( (mfloat_t*)&projectionMatrix, 0, resolution.w, resolution.h, 0, -10, 10);
 }
 - (void)setViewport:(WFCRect)viewport {
