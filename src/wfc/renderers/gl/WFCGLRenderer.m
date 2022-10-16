@@ -1,5 +1,6 @@
 #import "WFCGLRenderer.h"
 #import <PKLoader.h>
+#import <PKFont.h>
 #import <glad/glad.h>
 #import <SDL.h>
 #import <malloc/malloc.h>
@@ -41,6 +42,40 @@ const char
         "   }else {\n"
         "       outFragColor = fs_in.color;\n"
         "   }\n"
+        "}\n",
+    *gTextVsSrc =
+        "#version 330 core\n"
+
+        "layout (location = 0) in vec3 inPos;\n"
+        "layout (location = 1) in vec2 inCoord;\n"
+
+        "uniform mat4 uProjection;\n"
+
+        "out VS_OUT {\n"
+        "    vec2 texCoord;\n"
+        "} vs_out;\n"
+
+        "void main() {\n"
+        "    gl_Position = vec4( inPos, 1.0f) * uProjection;\n"
+        "    vs_out.texCoord = inCoord;\n"
+        "}\n",
+    *gTextFsSrc =
+        "#version 330 core\n"
+
+        "out vec4 outFragColor;\n"
+
+        "in VS_OUT {\n"
+        "    vec2 texCoord;\n"
+        "} fs_in;\n"
+
+        "uniform sampler2D uTextTexture;\n"
+        "uniform vec4 uBlendColor = vec4( 0, 0, 0, 1);\n"
+
+        "void main() {\n"
+        "    vec4 textColor = uBlendColor;\n"
+        "    textColor.a = texture( uTextTexture, fs_in.texCoord).r;\n"
+
+        "    outFragColor = uBlendColor * textColor;\n"
         "}\n";
 
 unsigned int compileProgram( const char *vssrc, const char *fssrc) {
@@ -66,20 +101,52 @@ struct WFCGLTextureData {
     unsigned int id;
 };
 
-struct WFCGLFontData {
+@interface WFCGLFont : PKFont
+@end
 
+@interface WFCGLGlyph : PKGlyph {
+    @public
+    unsigned int handle;
+}
+@end
+struct WFCGLFontData {
+    WFCGLFont *innerFont;
 };
+
+@implementation WFCGLFont
+- (Class)glyphClass {
+    return [WFCGLGlyph class];
+}
+@end
+
+@implementation WFCGLGlyph
+- (id)init {
+    if( self = [super init]) {
+        handle = 0;
+    }
+    return self;
+}
+- (void)glyphDidFillData {
+    if( handle == 0) {
+        glGenTextures( 1, &handle);
+    }
+    glBindTexture( GL_TEXTURE_2D, handle);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA16F, [self width], [self height], 0, GL_RED, GL_UNSIGNED_BYTE, [[self data] bytes]);
+    glGenerateMipmap( GL_TEXTURE_2D);
+    glBindTexture( GL_TEXTURE_2D, 0);
+}
+@end
 
 @implementation WFCGLRenderer
 + (void)initialize {
-    SDL_Init( SDL_INIT_EVERYTHING);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, WFC_OPENGL_VERSION_MAJOR);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, WFC_OPENGL_VERSION_MINOR);
 }
 + (void)cleanup {
-    SDL_Quit();
 }
 
 - (id)init {
@@ -89,6 +156,7 @@ struct WFCGLFontData {
         glGenBuffers( 1, &vbo);
         [self setResolution:WFCSSize( 800, 600)];
         standardProgram = compileProgram( gStandardVsSrc, gStandardFsSrc);
+        fontProgram = compileProgram( gTextVsSrc, gTextFsSrc);
     }
     return self;
 }
@@ -149,7 +217,19 @@ struct WFCGLFontData {
     }
 }
 - (BOOL)loadFont:(WFCFont*)font {
-    
+    NSString *path = font->name;
+    WFCGLFont *inner_font = [WFCGLFont alloc];
+    struct WFCGLFontData *font_data;
+    if( font->data == NULL) {
+        font_data = malloc( sizeof( struct WFCGLFontData));
+    }else {
+        font_data = font->data;
+        [font_data->innerFont release];
+        font_data->innerFont = NULL;
+    }
+    inner_font = [inner_font initFromFile:path size:font->size];
+    font_data->innerFont = inner_font;
+    font->data = font_data;
     return YES;
 }
 - (void)addVert:(struct vec3)position uv:(struct vec2)uv {
@@ -196,8 +276,51 @@ struct WFCGLFontData {
 
     vertexNum = 0;
 }
-- (void)drawText:(NSString*)text at:(struct vec2)pos font:(id)font {
+- (void)drawText:(NSString*)text at:(struct vec2)pos font:(WFCFont*)font {
+    [self flush];
+    struct vec2 curpos = pos;
+    NSUInteger length = [text length];
+    WFCGLFont *f = ((struct WFCGLFontData*)(font->data))->innerFont;
+    float fh = [f size];
 
+    glUseProgram( fontProgram);
+    glUniformMatrix4fv( glGetUniformLocation( fontProgram, "uProjection"), 1, GL_TRUE, (float*)&projectionMatrix);
+
+    glBindVertexArray( vao);
+    glBindBuffer( GL_ARRAY_BUFFER, vbo);
+    glEnableVertexAttribArray( 0);
+    glEnableVertexAttribArray( 1);
+    glEnableVertexAttribArray( 2);
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, sizeof( WFCGLVertex), (void*)0);
+    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, sizeof( WFCGLVertex), (void*)(3*sizeof( float)));
+    glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, sizeof( WFCGLVertex), (void*)(5*sizeof( float)));
+    for( NSUInteger i=0;i<length;++i) {
+        unichar c = [text characterAtIndex:i];
+
+        if( c == '\n') {
+            curpos.x = pos.x;
+            curpos.y += fh;
+            continue;
+        }
+        WFCGLGlyph *glyph = (WFCGLGlyph*)[f glyphForCharacter:c];
+        float bb = [glyph height] - [glyph ybearing];
+        float vertexs_[] = {
+            curpos.x, curpos.y + fh - [glyph height] + bb, 0, 0, 0, 1, 1, 1, 1,
+            curpos.x + [glyph width], curpos.y + fh - [glyph height] + bb, 0, 1, 0, 1, 1, 1, 1,
+            curpos.x + [glyph width], curpos.y + fh + bb, 0, 1, 1, 1, 1, 1, 1,
+            
+            curpos.x, curpos.y + fh - [glyph height] + bb, 0, 0, 0, 1, 1, 1, 1,
+            curpos.x, curpos.y + fh + bb, 0, 0, 1, 1, 1, 1, 1,
+            curpos.x + [glyph width], curpos.y + fh + bb, 0, 1, 1, 1, 1, 1, 1,
+        };
+        glActiveTexture( GL_TEXTURE0);
+        glBindTexture( GL_TEXTURE_2D, glyph->handle);
+        glBufferData( GL_ARRAY_BUFFER, sizeof( vertexs_), vertexs_, GL_STREAM_DRAW);
+        glDrawArrays( GL_TRIANGLES, 0, 6);
+
+        curpos.x += [glyph xadvance] >> 6;
+    }
+    glBindVertexArray( 0);
 }
 - (struct vec2)measureText:(NSString*)text font:(id)font {
     // TODO:

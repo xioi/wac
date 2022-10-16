@@ -37,10 +37,11 @@ WFCColor WFCSColor( float r, float g, float b, float a);
 }
 @end
 
-@interface WFCFont {
+@interface WFCFont : NSObject {
     @public
     NSString *name;
     NSString *family;
+    float size;
 
     void *data;
 }
@@ -51,7 +52,6 @@ WFCColor WFCSColor( float r, float g, float b, float a);
 - (void)renderEnd;
 - (void)setDrawColor:(WFCColor)color;
 - (void)addVert:(struct vec3)position uv:(struct vec2)uv;
-//- (void)addVert:(struct vec3)position uv:(struct vec2)uv color:(struct vec4)color;
 - (void)flush;
 - (void)drawFilledRectAt:(struct vec2)pos size:(struct vec2)size color:(WFCColor)color;
 - (void)drawTexturedRectAt:(struct vec2)pos size:(struct vec2)size texture:(WFCTexture*)texture;
@@ -60,7 +60,6 @@ WFCColor WFCSColor( float r, float g, float b, float a);
 
 - (BOOL)textureEnabling;
 - (void)setTextureEnabling:(BOOL)enable;
-//- (void)bindTexture:(WFCTexture*)texture index:(int)index;
 - (void)bindTexture:(WFCTexture*)texture;
 
 - (void)setResolution:(WFCSize)resolution;

@@ -13,6 +13,6 @@ typedef struct WFCGLVertex {
     int vertexNum;
     
     struct mat4 projectionMatrix;
-    unsigned int vao, vbo, standardProgram;
+    unsigned int vao, vbo, standardProgram, fontProgram;
 }
 @end

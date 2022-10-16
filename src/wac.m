@@ -42,12 +42,14 @@ int main( int argc, char **argv) {
     }
 end:
     [WFCGLRenderer cleanup];
+    SDL_Quit();
     [pool release];
     return 0;
 }
 
 void WFCWindowInit();
 void WACInit() {
+    SDL_Init( SDL_INIT_EVERYTHING);
     [WFCGLRenderer initialize];
     WFCWindowInit();
 #ifdef WAC_DEBUG

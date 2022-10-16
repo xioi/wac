@@ -17,6 +17,7 @@ extern struct mat4 gProjectionMatrix;
 
 WFCGLRenderer *renderer;
 WFCTexture *texture;
+WFCFont *font;
 
 static SDL_GLContext gGLContext;
 @implementation WFCWindow
@@ -113,8 +114,12 @@ static SDL_GLContext gGLContext;
     if( renderer == NULL) {
         renderer = [WFCGLRenderer new];
         texture = [WFCTexture new];
+        font = [WFCFont new];
         texture->name = @"tewi.png";
         [renderer loadTexture:texture];
+        font->name = @"Arial Unicode.ttf";
+        font->size = 32;
+        [renderer loadFont:font];
     }
 
     [self makeCurrentGLWindow];
@@ -122,6 +127,10 @@ static SDL_GLContext gGLContext;
     [renderer renderBegin];
     [renderer drawFilledRectAt:svec2( 10, 10) size:svec2( 200, 200) color:WFCSColor( 1, 1, 1, 1)];
     [renderer drawTexturedRectAt:svec2( 10, 220) size:svec2( 200, 200) texture:texture];
+    [renderer drawText:
+        @"I can eat glass and it doesn't hurt me.\n"
+        "我能吞下玻璃而不伤身体。"
+        at:svec2( 10, 10) font:font];
     [renderer flush];
     [renderer renderEnd];
     [self swapWindow];

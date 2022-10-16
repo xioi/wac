@@ -9,7 +9,7 @@ typedef struct hb_font_t hb_font_t;
     @private
     long code;
 
-    int width, height, xadvance, yadvance;
+    int width, height, xadvance, yadvance, ybearing;
     NSData *data;
 }
 
@@ -19,6 +19,7 @@ typedef struct hb_font_t hb_font_t;
 @property (readonly) int height;
 @property (readonly) int xadvance;
 @property (readonly) int yadvance;
+@property (readonly) int ybearing;
 
 - (void)glyphDidFillData;
 @end
@@ -42,4 +43,6 @@ typedef struct hb_font_t hb_font_t;
 
 - (PKGlyph*)glyphForCharacter:(long)c;
 - (void)loadGlyph:(PKGlyph*)glyph code:(unichar)code;
+
+- (Class)glyphClass;
 @end

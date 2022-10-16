@@ -58,11 +58,34 @@
     lastTexture = texture;
     textureUsed = YES;
 }
-- (void)drawText:(NSString*)text at:(struct vec2)pos font:(id)font {
+- (void)drawText:(NSString*)text at:(struct vec2)pos font:(WFCFont*)font {
+    NSUInteger length = [text length];
+    struct vec2 curpos = pos;
+    for( NSUInteger i=0;i<length;++i) {
+        unichar c = [text characterAtIndex:i];
+        float scale = font->size;
+        float h = scale, w = scale / 2;
 
+        if( c == 'f' || c == 'i' || c == 'j' || c == 'l' || c == 't') {
+            w = scale / 3;
+        }else if( c == 'm') {
+            w = scale * 0.8;
+        }else if( c == ' ') {
+            w = scale;
+        }else if( c == '\n') {
+            curpos.y += font->size;
+            curpos.x = pos.x;
+            continue;
+        }
+
+        if( c != ' ') {
+            [self drawFilledRectAt:curpos size:svec2( w, h) color:WFCSColor( 0, 0, 0, 1)];
+        }
+        curpos.x += w + scale / 10;
+    }
 }
 - (struct vec2)measureText:(NSString*)text font:(id)font {
-
+    return svec2( 0, 0);
 }
 
 - (BOOL)textureEnabling {
@@ -88,6 +111,9 @@
 @end
 
 @implementation WFCTexture
+@end
+
+@implementation WFCFont
 @end
 
 WFCSize WFCSSize( float w, float h) {

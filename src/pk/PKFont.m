@@ -12,6 +12,7 @@ static BOOL fontInitialized = NO;
 - (void)setHeight:(int)height_;
 - (void)setXAdvance:(int)xadvance_;
 - (void)setYAdvance:(int)yadvance_;
+- (void)setYBearing:(int)ybearing_;
 @end
 
 @implementation PKFont
@@ -60,7 +61,7 @@ static BOOL fontInitialized = NO;
             return self;
         }
         FT_New_Memory_Face( ft_library, [data bytes], [data length], 0, &face);
-        FT_Set_Pixel_Sizes( face, 0, size_);
+        size = size_;
     }
     return self;
 }
@@ -88,7 +89,7 @@ static BOOL fontInitialized = NO;
 
     PKGlyph *glyph = [glyphs objectForKey:key];
     if( glyph == NULL) { // cache missed, then create and remember
-        glyph = [[PKGlyph alloc] init];
+        glyph = [[[self glyphClass] alloc] init];
         [self loadGlyph:glyph code:c];
         [glyphs setValue:glyph forKey:key];
         [glyph release];
@@ -98,6 +99,8 @@ static BOOL fontInitialized = NO;
 }
 
 - (void)loadGlyph:(PKGlyph*)glyph code:(unichar)code {
+    //FT_Set_Pixel_Sizes( face, 0, 1);
+    FT_Set_Char_Size( face, 0, size * 16, 300, 300);
     FT_Load_Char( face, code, FT_LOAD_RENDER);
     FT_Bitmap *bm = &face->glyph->bitmap;
     const char *raw = (const char*)bm->buffer;
@@ -108,7 +111,12 @@ static BOOL fontInitialized = NO;
     [glyph setHeight:bm->rows];
     [glyph setXAdvance:face->glyph->advance.x];
     [glyph setYAdvance:face->glyph->advance.y];
+    [glyph setYBearing:face->glyph->bitmap_top];
     [glyph fillData:raw length:buffer_size];
+}
+
+- (Class)glyphClass {
+    return [PKGlyph class];
 }
 @end
 
@@ -119,6 +127,7 @@ static BOOL fontInitialized = NO;
 @synthesize height;
 @synthesize xadvance;
 @synthesize yadvance;
+@synthesize ybearing;
 
 - (id)init {
     if( self = [super init]) {
@@ -153,5 +162,8 @@ static BOOL fontInitialized = NO;
 }
 - (void)setYAdvance:(int)yadvance_ {
     yadvance = yadvance_;
+}
+- (void)setYBearing:(int)ybearing_ {
+    ybearing = ybearing_;
 }
 @end
