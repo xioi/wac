@@ -38,11 +38,11 @@
 - (void)didMouseDown:(WFCMouseEvent)e {}
 - (void)didMouseUp:(WFCMouseEvent)e {}
 
-- (WFCPoint)absolutePosition {
-    WFCPoint ap;
+- (struct WFCPoint)absolutePosition {
+    struct WFCPoint ap;
     ap.x = 0; ap.y = 0;
     if( [self parent] != nil) {
-        WFCRect pb = [parent bounds];
+        struct WFCRect pb = [parent bounds];
         ap.x += pb.origin.x;
         ap.y += pb.origin.y;
     }
@@ -51,8 +51,8 @@
     return ap;
 }
 
-- (BOOL)hitTest:(WFCPoint)point {
-    WFCPoint ap = [self absolutePosition];
+- (BOOL)hitTest:(struct WFCPoint)point {
+    struct WFCPoint ap = [self absolutePosition];
     point.x -= ap.x; point.y -= ap.y;
     if( (point.x >= 0 && point.x <= mBounds.size.w) && (point.y >= 0 && point.y <= mBounds.size.h)) {
         return YES;
@@ -61,23 +61,23 @@
     }
 }
 
-- (WFCSize)preferredSize {
-    return WFCSSize( rand() % 40 + 80, rand() % 80 + 80); // FIXME: to default size 100x100
+- (struct WFCSize)preferredSize {
+    return WFCSize( rand() % 40 + 80, rand() % 80 + 80); // FIXME: to default size 100x100
 }
 
-- (void)setLocation:(WFCPoint)location {
-    [self setBounds:WFCSRect( location.x, location.y, mBounds.size.w, mBounds.size.h)];
+- (void)setLocation:(struct WFCPoint)location {
+    [self setBounds:WFCRect( location.x, location.y, mBounds.size.w, mBounds.size.h)];
 }
 
-- (void)setSize:(WFCSize)size {
-    [self setBounds:WFCSRect( mBounds.origin.x, mBounds.origin.y, size.w, size.h)];
+- (void)setSize:(struct WFCSize)size {
+    [self setBounds:WFCRect( mBounds.origin.x, mBounds.origin.y, size.w, size.h)];
 }
 
-- (void)setBounds:(WFCRect)bounds_ {
+- (void)setBounds:(struct WFCRect)bounds_ {
     mBounds = bounds_;
 }
 
-- (WFCRect)bounds {
+- (struct WFCRect)bounds {
     return mBounds;
 }
 
@@ -174,7 +174,7 @@
     return [components count];
 }
 
-- (WFCControl*)mouseHit:(WFCPoint)point {
+- (WFCControl*)mouseHit:(struct WFCPoint)point {
     __block WFCControl *target = nil;
     [components enumerateObjectsUsingBlock:^( id _Nonnull obj, NSUInteger i, BOOL * _Nonnull ret) {
         WFCControl *component_ = [obj component];
@@ -190,8 +190,8 @@
     [layouter layoutComponents:self];
 }
 - (void)draw:(WFCDrawContext*)ctx {
-    WFCDrawContext *c2 = [ctx clone];
-    [c2 addOffset:WFCSPoint( [self bounds].origin.x, [self bounds].origin.y)];
+    WFCDrawContext *c2 = [ctx copy];
+    //FIXME:[c2 addOffset:WFCPoint( [self bounds].origin.x, [self bounds].origin.y)];
     NSUInteger c = [self componentCount];
     for( int i=0;i<c;++i) {
         [[self componentForIndex:i] draw:c2];
@@ -224,20 +224,20 @@
     return self;
 }
 - (void)layoutComponents:(WFCContainer*)container {
-    WFCPoint np;
+    struct WFCPoint np;
     np.x = rcap;np.y = ccap;
     int lmh = 0;
     const NSUInteger c = [container componentCount];
     for( int i=0;i<c;++i) {
         WFCControl *component = [container componentForIndex:i];
-        WFCSize pSize = [component preferredSize];
+        struct WFCSize pSize = [component preferredSize];
 
         //NSLog( @"%.2f %.2f", np.x + pSize.w + rcap, [container bounds].w);
         if( np.x + pSize.w + rcap > [container bounds].size.w) {
             np.x = rcap;
             np.y += lmh + ccap;
         }
-        [component setBounds:WFCSRect( np.x, np.y, pSize.w, pSize.h)];
+        [component setBounds:WFCRect( np.x, np.y, pSize.w, pSize.h)];
         np.x += pSize.w + rcap;
 
         if( pSize.h > lmh) lmh = pSize.h;
@@ -263,7 +263,7 @@
 
 - (void)layoutComponents:(WFCContainer*)container {
     const NSUInteger c = [container componentCount];
-    const WFCRect siz = [container bounds];
+    const struct WFCRect siz = [container bounds];
     int cw = (siz.size.w - ccap - columns * ccap) / columns, ch = (siz.size.h - rcap - rows * rcap) / rows;
     int cc = 0, rc = 0;
     for( int i=0;i<c;++i) {
@@ -272,7 +272,7 @@
             cc = 0;
         }
         WFCControl *component = [container componentForIndex:i];
-        [component setBounds:WFCSRect( (cc + 1) * ccap + cc * cw, (rc + 1) * rcap + rc * ch, cw, ch )];
+        [component setBounds:WFCRect( (cc + 1) * ccap + cc * cw, (rc + 1) * rcap + rc * ch, cw, ch )];
         ++cc;
     }
 }

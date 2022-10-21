@@ -10,7 +10,7 @@
 - (void)renderEnd {
 
 }
-- (void)setDrawColor:(WFCColor)color {
+- (void)setDrawColor:(struct WFCColor)color {
     self->drawColor = color;
 }
 - (void)addVert:(struct vec3)position uv:(struct vec2)uv {
@@ -19,7 +19,7 @@
 - (void)flush {
 
 }
-- (void)drawFilledRectAt:(struct vec2)pos size:(struct vec2)size color:(WFCColor)color {
+- (void)drawFilledRectAt:(struct vec2)pos size:(struct vec2)size color:(struct WFCColor)color {
     BOOL enabling = [self textureEnabling];
     if( enabling) {
         [self flush];
@@ -79,7 +79,7 @@
         }
 
         if( c != ' ') {
-            [self drawFilledRectAt:curpos size:svec2( w, h) color:WFCSColor( 0, 0, 0, 1)];
+            [self drawFilledRectAt:curpos size:svec2( w, h) color:WFCColor( 0, 0, 0, 1)];
         }
         curpos.x += w + scale / 10;
     }
@@ -100,14 +100,15 @@
     textureUsed = YES;
 }
 
-- (void)setResolution:(WFCSize)resolution_ {
+- (void)setResolution:(struct WFCSize)resolution_ {
     self->resolution = resolution_;
 }
-- (void)setViewport:(WFCRect)viewport {}
+- (void)setViewport:(struct WFCRect)viewport {}
 - (BOOL)loadTexture:(WFCTexture*)txt { return NO;}
 - (void)releaseTexture:(WFCTexture*)txt {}
 - (BOOL)loadFont:(WFCFont*)font { return NO;}
 - (void)releaseFont:(WFCFont*)font {}
+- (WFCFont*)defaultFont { return NULL;}
 @end
 
 @implementation WFCTexture
@@ -116,24 +117,24 @@
 @implementation WFCFont
 @end
 
-WFCSize WFCSSize( float w, float h) {
-    WFCSize s;
+struct WFCSize WFCSize( float w, float h) {
+    struct WFCSize s;
     s.w = w;
     s.h = h;
     return s;
 }
-WFCPoint WFCSPoint( float x, float y) {
-    WFCPoint p;
+struct WFCPoint WFCPoint( float x, float y) {
+    struct WFCPoint p;
     p.x = x;p.y = y;
     return p;
 }
-WFCRect WFCSRect( float x, float y, float w, float h) {
-    WFCRect r;
-    r.origin = WFCSPoint( x, y);
-    r.size = WFCSSize( w, h);
+struct WFCRect WFCRect( float x, float y, float w, float h) {
+    struct WFCRect r;
+    r.origin = WFCPoint( x, y);
+    r.size = WFCSize( w, h);
 }
-WFCColor WFCSColor( float r, float g, float b, float a) {
-    WFCColor c;
+struct WFCColor WFCColor( float r, float g, float b, float a) {
+    struct WFCColor c;
     c.r = r;c.g = g;c.b = b;c.a = a;
     return c;
 }

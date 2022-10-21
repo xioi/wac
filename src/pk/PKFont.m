@@ -70,11 +70,12 @@ static BOOL fontInitialized = NO;
     if( self = [self initFromMemory:dat size:size_]) {
         // pass
     }
-    [dat release];
+    //[dat release]; // this causes segmentation fault, how strange!
     return self;
 }
 - (void)dealloc {
     FT_Done_Face( face);
+    //[glyphs release];
     [super dealloc];
 }
 

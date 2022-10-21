@@ -27,22 +27,24 @@ typedef struct WFCKey {
 @interface WFCDrawContext : NSObject {
     @private
     WFCWindow *target;
-    WFCRect area;
-    WFCPoint offset_;
+    struct WFCRect area;
+    struct WFCPoint offset_;
+
+    WFCBaseRenderer *renderer;
 }
-@property (readwrite) WFCRect area;
+@property (readwrite) struct WFCRect area;
 
 - (id)initFromWindow:(WFCWindow*)wnd;
 - (id)initFromContext:(WFCDrawContext*)ctx;
 - (instancetype)clone;
 
-- (void)setOffset:(WFCPoint)offset;
-- (void)addOffset:(WFCPoint)addition;
-- (WFCPoint)offset;
+- (void)setOffset:(struct WFCPoint)offset;
+- (void)addOffset:(struct WFCPoint)addition;
+- (struct WFCPoint)offset;
 
-- (void)drawFilledRect:(WFCRect)rect color:(WFCColor)col;
-- (void)drawImage:(WFCTexture*)txt at:(WFCPoint)pos;
-- (void)drawText:(NSString*)text at:(WFCPoint)origin font:(PKFont*)font;
+- (void)drawFilledRect:(struct WFCRect)rect color:(struct WFCColor)col;
+- (void)drawImage:(WFCTexture*)txt at:(struct WFCPoint)pos;
+- (void)drawText:(NSString*)text at:(struct WFCPoint)origin font:(PKFont*)font;
 @end
 
 @interface WFCWindow : NSObject {
@@ -52,6 +54,7 @@ typedef struct WFCKey {
 
     WFCSingleViewContainer *container;
     WFCWindowState state;
+    WFCBaseRenderer *renderer;
     WFCDrawContext *ctx;
 
     WFCControl *lastHoveringComponent;
@@ -61,6 +64,8 @@ typedef struct WFCKey {
 }
 
 @property (readwrite) WFCWindowState state;
+
+@property (readonly) WFCBaseRenderer *renderer;
 
 @property (readonly) NSUInteger windowID;
 @property (readonly) BOOL mousePressing;

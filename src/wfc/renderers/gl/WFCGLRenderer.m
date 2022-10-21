@@ -149,12 +149,22 @@ struct WFCGLFontData {
 + (void)cleanup {
 }
 
+- (WFCFont*)defaultFont {
+    if( defaultFont == NULL) { // ini
+        defaultFont = [WFCFont new];
+        defaultFont->name = @"Arial Unicode.ttf";
+        defaultFont->size = 16;
+        [self loadFont:defaultFont];
+    }
+    return defaultFont;
+}
+
 - (id)init {
     if( self = [super init]) {
         vertexNum = 0;
         glGenVertexArrays( 1, &vao);
         glGenBuffers( 1, &vbo);
-        [self setResolution:WFCSSize( 800, 600)];
+        [self setResolution:WFCSize( 800, 600)];
         standardProgram = compileProgram( gStandardVsSrc, gStandardFsSrc);
         fontProgram = compileProgram( gTextVsSrc, gTextFsSrc);
     }
@@ -343,14 +353,14 @@ struct WFCGLFontData {
     }
     return svec2( maxwidth, curpos.y);
 }
-- (void)setResolution:(WFCSize)resolution_ {
+- (void)setResolution:(struct WFCSize)resolution_ {
     [super setResolution:resolution_];
     [self updateProjectionMatrix];
 }
 - (void)updateProjectionMatrix {
     mat4_ortho( (mfloat_t*)&projectionMatrix, 0, resolution.w, resolution.h, 0, -10, 10);
 }
-- (void)setViewport:(WFCRect)viewport {
+- (void)setViewport:(struct WFCRect)viewport {
     viewport.origin.y = resolution.h - viewport.origin.y;
     glViewport( (int)viewport.origin.x, (int)viewport.origin.y, (int)viewport.size.w, (int)viewport.size.h);
 }

@@ -6,7 +6,7 @@
 @class WFCWindow;
 @interface WFCControl : NSObject <WFCUIEventResponder> {
     @protected
-    WFCRect mBounds;
+    struct WFCRect mBounds;
     WFCWindow *root;
     WFCContainer *parent;
 
@@ -14,16 +14,16 @@
 }
 @property (readwrite, assign) WFCWindow *root;
 @property (readwrite, assign) WFCContainer *parent;
-@property (readwrite) WFCRect bounds;
+@property (readwrite) struct WFCRect bounds;
 @property (readonly) NSString *uiName;
 @property (readonly) BOOL focusable;
 @property (readonly) BOOL isHovering;
 
-- (WFCSize)preferredSize;
-- (void)setLocation:(WFCPoint)location;
-- (void)setSize:(WFCSize)size;
+- (struct WFCSize)preferredSize;
+- (void)setLocation:(struct WFCPoint)location;
+- (void)setSize:(struct WFCSize)size;
 
-- (WFCPoint)absolutePosition;
+- (struct WFCPoint)absolutePosition;
 
 - (void)mouseEnter:(WFCMouseEvent)e;
 - (void)mouseExit:(WFCMouseEvent)e;
@@ -32,7 +32,7 @@
 
 - (void)requestFocus;
 
-- (BOOL)hitTest:(WFCPoint)point;
+- (BOOL)hitTest:(struct WFCPoint)point;
 
 - (void)draw:(WFCDrawContext*)ctx;
 @end
@@ -55,7 +55,7 @@
 - (NSInteger)componentAttributeForIndex:(NSUInteger)index;
 - (NSUInteger)componentCount;
 
-- (WFCControl*)mouseHit:(WFCPoint)point;
+- (WFCControl*)mouseHit:(struct WFCPoint)point;
 
 - (void)layout;
 - (void)draw:(WFCDrawContext*)ctx;
@@ -94,9 +94,9 @@
 // a debug component
 @interface WFCColoredQuadComponent : WFCControl {
     @private
-    WFCColor color;
+    struct WFCColor color;
 }
-@property (readwrite) WFCColor color;
+@property (readwrite) struct WFCColor color;
 
-- (id)initWithColor:(WFCColor)color;
+- (id)initWithColor:(struct WFCColor)color;
 @end

@@ -14,5 +14,7 @@ typedef struct WFCGLVertex {
     
     struct mat4 projectionMatrix;
     unsigned int vao, vbo, standardProgram, fontProgram;
+
+    WFCFont *defaultFont;
 }
 @end
