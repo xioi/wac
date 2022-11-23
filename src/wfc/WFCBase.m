@@ -1,4 +1,4 @@
-#import "WFCWindow.h"
+// #import "WFCWindow.h"
 #import "WFCLang.h"
 
 @implementation WFCText

@@ -141,10 +141,10 @@ struct WFCGLFontData {
 
 @implementation WFCGLRenderer
 + (void)initialize {
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0);
+    /* SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, WFC_OPENGL_VERSION_MAJOR);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, WFC_OPENGL_VERSION_MINOR);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, WFC_OPENGL_VERSION_MINOR); */
 }
 + (void)cleanup {
 }
@@ -152,8 +152,8 @@ struct WFCGLFontData {
 - (WFCFont*)defaultFont {
     if( defaultFont == NULL) { // ini
         defaultFont = [WFCFont new];
-        defaultFont->name = @"Arial Unicode.ttf";
-        defaultFont->size = 16;
+        [defaultFont setName:@"Arial Unicode.ttf"];
+        [defaultFont setSize:16];
         [self loadFont:defaultFont];
     }
     return defaultFont;
@@ -190,17 +190,17 @@ struct WFCGLFontData {
     [self flush];
 }
 - (BOOL)loadTexture:(WFCTexture*)txt {
-    NSString *path = txt->name;
+    NSString *path = [txt name];
     int width, height, channels;
     const char *data = PKLoadImageFile( path, &width, &height, &channels);
     struct WFCGLTextureData *tex_data;
     unsigned int t;
-    if( !txt->complete) {
+    if( ![txt complete]) {
         glGenTextures( 1, &t);
         tex_data = malloc( sizeof( struct WFCGLTextureData));
     }else {
-        t = ((struct WFCGLTextureData*)txt->data)->id;
-        tex_data = (struct WFCGLTextureData*)txt->data;
+        t = ((struct WFCGLTextureData*)[txt data])->id;
+        tex_data = (struct WFCGLTextureData*)[txt data];
     }
     glBindTexture( GL_TEXTURE_2D, t);
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -211,35 +211,35 @@ struct WFCGLFontData {
     PKFreeImageFile( data);
     tex_data->id = t;
 
-    txt->width = width;
-    txt->height = height;
-    txt->data = tex_data;
-    txt->complete = YES;
+    [txt setWidth:width];
+    [txt setHeight:height];
+    [txt setData:tex_data];
+    [txt setComplete:YES];
     return YES;
 }
 - (void)releaseTexture:(WFCTexture *)txt {
-    if( txt->data != NULL) {
-        glDeleteTextures( 1, &((struct WFCGLTextureData*)txt->data)->id);
+    if( [txt data] != NULL) {
+        glDeleteTextures( 1, &((struct WFCGLTextureData*)[txt data])->id);
 
-        free( txt->data);
-        txt->data = NULL;
-        txt->complete = NO;
+        free( [txt data]);
+        [txt setData:NULL];
+        [txt setComplete:NO];
     }
 }
 - (BOOL)loadFont:(WFCFont*)font {
-    NSString *path = font->name;
+    NSString *path = [font name];
     WFCGLFont *inner_font = [WFCGLFont alloc];
     struct WFCGLFontData *font_data;
-    if( font->data == NULL) {
+    if( [font data] == NULL) {
         font_data = malloc( sizeof( struct WFCGLFontData));
     }else {
-        font_data = font->data;
+        font_data = [font data];
         [font_data->innerFont release];
         font_data->innerFont = NULL;
     }
-    inner_font = [inner_font initFromFile:path size:font->size];
+    inner_font = [inner_font initFromFile:path size:[font size]];
     font_data->innerFont = inner_font;
-    font->data = font_data;
+    [font setData:font_data];
     return YES;
 }
 - (void)addVert:(struct vec3)position uv:(struct vec2)uv {
@@ -265,7 +265,7 @@ struct WFCGLFontData {
 
     if( textureEnabling) {
         glActiveTexture( GL_TEXTURE0);
-        glBindTexture( GL_TEXTURE_2D, ((struct WFCGLTextureData*)lastTexture->data)->id);
+        glBindTexture( GL_TEXTURE_2D, ((struct WFCGLTextureData*)[lastTexture data])->id);
         glUniform1i( glGetUniformLocation( standardProgram, "uEnableTexture"), 1);
     }else {
         glUniform1i( glGetUniformLocation( standardProgram, "uEnableTexture"), 0);
@@ -290,7 +290,7 @@ struct WFCGLFontData {
     [self flush];
     struct vec2 curpos = pos;
     NSUInteger length = [text length];
-    WFCGLFont *f = ((struct WFCGLFontData*)(font->data))->innerFont;
+    WFCGLFont *f = ((struct WFCGLFontData*)([font data]))->innerFont;
     float fh = [f size];
 
     glUseProgram( fontProgram);
@@ -335,7 +335,7 @@ struct WFCGLFontData {
 - (struct vec2)measureText:(NSString*)text font:(WFCFont*)font {
     struct vec2 curpos;
     float maxwidth = 0;
-    WFCGLFont *f = ((struct WFCGLFontData*)(font->data))->innerFont;
+    WFCGLFont *f = ((struct WFCGLFontData*)([font data]))->innerFont;
     float fh = [f size];
     NSUInteger length;
     for( NSUInteger i=0;i<length;++i) {

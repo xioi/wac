@@ -1,9 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <mathc.h>
 
-#define WFC_OPENGL_VERSION_MAJOR 3
-#define WFC_OPENGL_VERSION_MINOR 3
-
 struct WFCPoint {
     float x, y;
 };
@@ -27,24 +24,33 @@ struct WFCRect WFCRect( float x, float y, float w, float h);
 struct WFCColor WFCColor( float r, float g, float b, float a);
 
 @interface WFCTexture : NSObject {
-    @public
-    int width;
-    int height;
+    @private
+    NSInteger width;
+    NSInteger height;
     BOOL complete;
 
     NSString *name;
     void *data;
 }
+@property (readwrite, copy) NSString *name;
+@property (readwrite) NSInteger width;
+@property (readwrite) NSInteger height;
+@property (readwrite) BOOL complete;
+
+@property (readwrite) void *data;
 @end
 
 @interface WFCFont : NSObject {
-    @public
+    @private
     NSString *name;
-    NSString *family;
     float size;
 
     void *data;
 }
+@property (readwrite, copy) NSString *name;
+@property (readwrite) float size;
+
+@property (readwrite) void *data;
 @end
 
 @protocol WFCRendererProtocol
@@ -86,4 +92,10 @@ struct WFCColor WFCColor( float r, float g, float b, float a);
 }
 + (void)initialize;
 + (void)cleanup;
+@end
+
+@interface WFCPaintContext : NSObject {
+    @private
+    struct WFCPoint offset;
+}
 @end

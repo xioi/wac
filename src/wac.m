@@ -1,61 +1,47 @@
-#import <Foundation/Foundation.h>
-#import <SDL.h>
-#import <stdarg.h>
 #import "glad/glad.h"
-#import <WFCWindow.h>
-//#import <WFCRender.h>
-#import <WFCLang.h>
-#import <PKException.h>
+#import <WFCEntry.h>
+#import <platforms/sdl/WFCSDLWindow.h>
 #import <renderers/gl/WFCGLRenderer.h>
+#import <PKException.h>
+#import <SDL.h>
 
 NSString* WACFormat( NSString *fmt, ...);
-void WACInit();
+BOOL running = YES;
+
+@interface application : NSObject
+- (void)close:(WFCWindowManagement*)sender;
+@end
 
 int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
-    WACInit();
+    struct WFCInit init;
+    init.argc = argc;
+    init.argv = argv;
+    WFCInit( &init);
 
-    const unsigned int width = 800, height = 600;
-    WFCWindow *wacWindow =
-        [[WFCWindow
-            windowWithTitle:@"Waffle & Cookie"
-            width:width
-            height:height
-            flags:WFCResizable] autorelease];
+    WFCWindow *window = [[[WFCSDLWindow alloc] initWithTitle:@"Waffle & Cookie"] addToManagement];
 
-    int err = gladLoadGLLoader( SDL_GL_GetProcAddress);
-    if( err == GL_FALSE) {
-        PKRuntimeError( @"This graphics device doesn't support OpenGL %d.%d.", WFC_OPENGL_VERSION_MAJOR, WFC_OPENGL_VERSION_MINOR);
-        PKExit( 1);
-    }
-
-    WFCWindowManager *wndMgr = WFCWindowManagerContext();
-    [wndMgr addWindow:wacWindow];
-
-    SDL_Event e;
-    while( YES) {
-        while( SDL_PollEvent( &e)) {
-            if( ![wndMgr processEvent:&e]) goto end;
+    WFCWindowManagement *management = WFCWindowManagementContext();
+    [management setTarget:[[application new] autorelease]];
+    [management setCloseAction:@selector(close:)];
+    while( running) {
+        while( [management pollEvent]) {
         }
-        [wndMgr draw];
+        [management updateWindows:1.0/30];
+        [management paintWindows];
         SDL_Delay( 33);
     }
 end:
-    [WFCGLRenderer cleanup];
-    SDL_Quit();
+    WFCShutdown();
     [pool release];
     return 0;
 }
 
-void WFCWindowInit();
-void WACInit() {
-    SDL_Init( SDL_INIT_EVERYTHING);
-    [WFCGLRenderer initialize];
-    WFCWindowInit();
-#ifdef WAC_DEBUG
-    NSLog( @"[DEBUG] Waffle & Cookie (OpenGL%d.%d) Initialized.", WFC_OPENGL_VERSION_MAJOR, WFC_OPENGL_VERSION_MINOR);
-#endif
+@implementation application
+- (void)close:(WFCWindowManagement*)sender {
+    running = NO;
 }
+@end
 
 // NSLog( @"%@", WACFormat( @"{0} {1} {0}", @"0", @"1")); ---> "0 1 0"
 NSString* WACFormat( NSString *fmt, ...) {

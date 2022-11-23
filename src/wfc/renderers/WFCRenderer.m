@@ -63,7 +63,7 @@
     struct vec2 curpos = pos;
     for( NSUInteger i=0;i<length;++i) {
         unichar c = [text characterAtIndex:i];
-        float scale = font->size;
+        float scale = [font size];
         float h = scale, w = scale / 2;
 
         if( c == 'f' || c == 'i' || c == 'j' || c == 'l' || c == 't') {
@@ -73,7 +73,7 @@
         }else if( c == ' ') {
             w = scale;
         }else if( c == '\n') {
-            curpos.y += font->size;
+            curpos.y += [font size];
             curpos.x = pos.x;
             continue;
         }
@@ -112,9 +112,17 @@
 @end
 
 @implementation WFCTexture
+@synthesize name;
+@synthesize width;
+@synthesize height;
+@synthesize complete;
+@synthesize data;
 @end
 
 @implementation WFCFont
+@synthesize name;
+@synthesize size;
+@synthesize data;
 @end
 
 struct WFCSize WFCSize( float w, float h) {
