@@ -12,6 +12,9 @@
 @synthesize mouseLocation;
 @synthesize mouseClicks;
 
+@synthesize keyCode;
+@synthesize keyModifiers;
+
 - (id)copyWithZone:(nullable NSZone *)zone {
     WFCResponderEvent *copy = [[[self class] alloc] init];
     if( copy) {
@@ -37,38 +40,104 @@
     [obj setMouseClicks:clicks];
     return obj;
 }
++ (instancetype)keyEventWithType:(WFCResponderEventType)type key:(NSInteger)keycode modifiers:(NSUInteger)keymod timpstamp:(NSUInteger)timestamp window:(WFCWindow*)window {
+    WFCResponderEvent *obj = [[[self class] alloc] init];
+    [obj setType:type];
+    [obj setTimestamp:timestamp];
+    [obj setWindow:window];
+
+    [obj setKeyCode:keycode];
+    [obj setKeyModifiers:keymod];
+    return obj;
+}
+@end
+
+@implementation WFCAnimationContext
+@synthesize timestamp;
 @end
 
 @implementation WFCResponder
-- (void)onAnimation:(WFCAnimationContext*)ctx {
+- (void)onAnimation:(WFCAnimationContext*)ctx {}
+- (void)paint:(WFCPaintContext*)context {}
 
+- (void)onMouseDown:(WFCResponderEvent*)event {}
+- (void)onMouseUp:(WFCResponderEvent*)event {}
+- (void)onClick:(WFCResponderEvent*)event {}
+
+- (void)onKeyDown:(WFCResponderEvent*)event {}
+- (void)onKeyUp:(WFCResponderEvent*)event {}
+@end
+
+@implementation WFCView
+@synthesize window;
+@synthesize superview;
+@synthesize bounds;
+
+- (id)init {
+    if( self = [super init]) {
+        bounds = WFCRect( 0, 0, 100, 100);
+        superview = NULL;
+        subviews = [NSMutableArray new];
+    }
+    return self;
 }
-- (void)paint:(WFCPaintContext*)context {
 
+- (void)addSubview:(WFCView*)subview {
+    if( ![subviews containsObject:subview]) {
+        [subviews addObject:subview];
+        [self didAddSubview:subview];
+        [subview didAddIntoSuperview:self];
+    }
 }
-
-- (void)onMouseDown:(WFCResponderEvent*)event {
-
+- (void)removeSubview:(WFCView*)subview {
+    if( [subviews containsObject:subview]) {
+        [subviews removeObject:subview];
+        [self didRemoveSubview:subview];
+        [subview didRemoveFromSuperview:subview];
+    }
 }
-- (void)onMouseUp:(WFCResponderEvent*)event {
-
+- (void)removeFromSuperview {
+    if( self.superview != NULL) {
+        [self.superview removeSubview:self];
+        [self didRemoveFromSuperview:self.superview];
+        self.superview = NULL;
+    }
 }
-- (void)onClick:(WFCResponderEvent*)event {
+@end
 
-}
+@implementation WFCView (Events)
+- (void)didRemoveFromSuperview:(WFCView*)superview {}
+- (void)didAddIntoSuperview:(WFCView*)superview {}
+- (void)didRemoveSubview:(WFCView*)subview {}
+- (void)didAddSubview:(WFCView*)subview {}
+@end
 
-- (void)onKeyDown:(WFCResponderEvent*)event {
-
-}
-- (void)onKeyUp:(WFCResponderEvent*)event {
-
-}
+@implementation WFCColoredRectView
+@synthesize color;
 @end
 
 @implementation WFCWindow
 @synthesize title;
-@synthesize buttonOption;
+@synthesize style;
+@synthesize size;
 
+- (WFCView*)rootView {
+    return rootView;
+}
+- (void)setRootView:(WFCView*)rv {
+    [rootView release];
+    rootView = [rv retain];
+    // TODO: set size
+}
+
+- (id)init {
+    if( self = [super init]) {
+        WFCWindowStyle initializationStyle =
+            WFCWindowStyleButtonClose | WFCWindowStyleButtonMinimize;
+        self.style = initializationStyle;
+    }
+    return self;
+}
 - (id)initWithTitle:(NSString*)title_ {
     if( self = [self init]) {
         [self setTitle:title_];
@@ -89,14 +158,27 @@
     WFCWindowManagement *mgr = WFCWindowManagementContext();
     [mgr removeWindow:self];
 }
+@end
 
-// FIXME:delete
-- (void)onMouseDown:(WFCResponderEvent*)event {
-    struct WFCPoint l = [event mouseLocation];
-    NSLog( @"[%.2f,%.2f] in %lu", l.x, l.y, [event timestamp]);
+@implementation WFCWindow (Appearance)
+- (void)initializePaintContext:(WFCPaintContext*)ctx {
+    // to be overrided
 }
-- (void)inKeyDown:(WFCResponderEvent*)event {
+- (void)paint {
+    [self windowWillPaint];
+    [self windowDoPaint];
+    [self windowDidPaint];
+}
 
+- (void)windowWillPaint {}
+- (void)windowDoPaint {}
+- (void)windowDidPaint {}
+
+- (void)windowDidSizeChange:(struct WFCSize)size_ {
+    NSLog( @"Size changed to [%.0f, %.0f]", size_.w, size_.h);
+    if( size_.h < 300) {
+        self.size = WFCSize( size_.w, 300);
+    }
 }
 @end
 
@@ -213,6 +295,20 @@
                 [_target onKeyUp:event];
             }
             break;
+        case SDL_WINDOWEVENT: {
+            _id = e.window.windowID;
+            _target = [self querySDLWindowByID:_id];
+            switch( e.window.event) {
+                case SDL_WINDOWEVENT_SIZE_CHANGED: {
+                    struct WFCSize size = WFCSize( e.window.data1, e.window.data2);
+                    [_target windowDidSizeChange:size];
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
         default:
             break;
     }
@@ -227,14 +323,28 @@
 
 }
 - (void)paintWindows {
-
+    [windows enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        WFCWindow *w = obj;
+        [w paint];
+    }];
 }
 @end
 
-WFCWindowManagement *gManagement = NULL;
+#define WFCSingle( class, identity) \
+class *identity = NULL; \
+class* class##Context() {\
+if( identity == NULL) {\
+identity = [class new];\
+}\
+return identity;\
+}
+
+WFCSingle( WFCWindowManagement, gManagement)
+
+/* WFCWindowManagement *gManagement = NULL;
 WFCWindowManagement* WFCWindowManagementContext() {
     if( gManagement == NULL) {
         gManagement = [WFCWindowManagement new];
     }
     return gManagement;
-}
+} */

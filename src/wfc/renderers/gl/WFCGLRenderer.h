@@ -1,5 +1,5 @@
 #import "../WFCRenderer.h"
-#define WFC_GL_MAX_VERTEXS 2048
+#define WFC_GL_MAX_VERTEXS 682 * 3 // ~= 2048
 
 typedef struct WFCGLVertex {
     float x, y, z;
@@ -17,4 +17,5 @@ typedef struct WFCGLVertex {
 
     WFCFont *defaultFont;
 }
++ (void)loadGLFunctions;
 @end

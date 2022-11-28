@@ -14,4 +14,9 @@ void WFCInit( struct WFCInit *args) {
 void WFCShutdown() {
     SDL_Quit();
 }
+#else
+void WFCInit( struct WFCInit *args) {
+}
+void WFCShutdown() {
+}
 #endif

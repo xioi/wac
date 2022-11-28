@@ -1,6 +1,8 @@
 #import "WFCRenderer.h"
 
 @implementation WFCBaseRenderer
+@synthesize clip;
+
 + (void)initialize {}
 + (void)cleanup {}
 
@@ -109,6 +111,8 @@
 - (BOOL)loadFont:(WFCFont*)font { return NO;}
 - (void)releaseFont:(WFCFont*)font {}
 - (WFCFont*)defaultFont { return NULL;}
+- (void)clipBegin {}
+- (void)clipEnd {}
 @end
 
 @implementation WFCTexture
@@ -123,6 +127,30 @@
 @synthesize name;
 @synthesize size;
 @synthesize data;
+@end
+
+@implementation WFCPaintContext
+@synthesize offset;
+@synthesize renderer;
+
+- (id)copyWithZone:(nullable NSZone *)zone {
+    WFCPaintContext *ctx = [[[self class] alloc] initWithRenderer:self.renderer];
+    ctx.offset = self.offset;
+    return ctx;
+}
+
++ (instancetype)paintContextWithRenderer:(WFCBaseRenderer*)renderer_ {
+    WFCPaintContext *ctx = [[[self class] alloc] initWithRenderer:renderer_];
+    return ctx;
+}
+- (id)initWithRenderer:(WFCBaseRenderer*)renderer_ {
+    if( self = [super init]) {
+        renderer = renderer_;
+        offset = WFCPoint( 0, 0);
+    }
+    return self;
+}
+
 @end
 
 struct WFCSize WFCSize( float w, float h) {
@@ -140,6 +168,7 @@ struct WFCRect WFCRect( float x, float y, float w, float h) {
     struct WFCRect r;
     r.origin = WFCPoint( x, y);
     r.size = WFCSize( w, h);
+    return r;
 }
 struct WFCColor WFCColor( float r, float g, float b, float a) {
     struct WFCColor c;

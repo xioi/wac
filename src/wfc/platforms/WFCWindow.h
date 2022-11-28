@@ -1,11 +1,13 @@
 #import <Foundation/Foundation.h>
 #import <renderers/WFCRenderer.h>
 
-typedef NS_OPTIONS( NSUInteger, WFCWindowButtonOption) {
-    WFCNoWindowButton   = 0,
-    WFCCloseButton      = 1 << 0,
-    WFCMaximizeButton   = 1 << 1,
-    WFCMinimizeButton   = 1 << 2,
+typedef NS_OPTIONS( NSUInteger, WFCWindowStyle) {
+    WFCWindowStyleNone              = 0,
+    WFCWindowStyleButtonClose       = 1 << 0,
+    WFCWindowStyleButtonMaximize    = 1 << 1,
+    WFCWindowStyleButtonMinimize    = 1 << 2,
+    WFCWindowStyleResizable         = 1 << 3,
+    WFCWindowStyleBorderless        = 1 << 4,
 };
 
 typedef NS_OPTIONS( NSUInteger, WFCMouseButtonType) {
@@ -35,6 +37,7 @@ typedef NS_ENUM( NSUInteger, WFCResponderEventType) {
     NSUInteger mouseClicks;
 
     NSInteger keyCode;
+    NSUInteger keyModifiers;
 }
 @property (readwrite) WFCResponderEventType type;
 @property (readwrite) NSUInteger timestamp;
@@ -45,6 +48,7 @@ typedef NS_ENUM( NSUInteger, WFCResponderEventType) {
 @property (readwrite) NSUInteger mouseClicks;
 
 @property (readwrite) NSInteger keyCode;
+@property (readwrite) NSUInteger keyModifiers;
 
 + (instancetype)mouseEventWithType:(WFCResponderEventType)type button:(WFCMouseButtonType)button timpstamp:(NSUInteger)timestamp window:(WFCWindow*)window location:(struct WFCPoint)location click:(NSUInteger)clicks;
 + (instancetype)keyEventWithType:(WFCResponderEventType)type key:(NSInteger)keycode modifiers:(NSUInteger)keymod timpstamp:(NSUInteger)timestamp window:(WFCWindow*)window;
@@ -52,12 +56,16 @@ typedef NS_ENUM( NSUInteger, WFCResponderEventType) {
 
 @interface WFCAnimationContext : NSObject {
     @private
+    NSUInteger timestamp;
 }
+@property (readwrite) NSUInteger timestamp;
+
 @end
 
 @interface WFCResponder : NSObject
 // - (void)update:(float)delta;
-- (void)onAnimation:(WFCAnimationContext*)ctx;
+// - (void)requestBeginAnimation;
+// - (void)onAnimation:(WFCAnimationContext*)ctx;
 - (void)paint:(WFCPaintContext*)context;
 
 - (void)onMouseDown:(WFCResponderEvent*)event;
@@ -70,31 +78,64 @@ typedef NS_ENUM( NSUInteger, WFCResponderEventType) {
 
 @interface WFCView : WFCResponder {
     @private
-    WFCResponder *parent;
+    WFCView *superview;
+    struct WFCRect bounds;
+    NSMutableArray *subviews;
+    WFCWindow *window;
 }
-@property (readwrite, retain) WFCResponder *parent;
+@property (readwrite, retain) WFCWindow *window;
+@property (readwrite, retain) WFCView *superview;
+@property (readwrite) struct WFCRect bounds;
 
 - (void)addSubview:(WFCView*)subview;
+- (void)removeSubview:(WFCView*)subview;
+- (void)removeFromSuperview;
+@end
+
+@interface WFCView (Events)
+- (void)didRemoveFromSuperview:(WFCView*)superview;
+- (void)didAddIntoSuperview:(WFCView*)superview;
+- (void)didRemoveSubview:(WFCView*)subview;
+- (void)didAddSubview:(WFCView*)subview;
+@end
+
+@interface WFCColoredRectView : WFCView {
+    @private
+    struct WFCColor color;
+}
+@property (readwrite) struct WFCColor color;
 @end
 
 @interface WFCWindow : WFCResponder {
     @protected
     NSString *title;
-    WFCWindowButtonOption buttonOption;
+    WFCWindowStyle style;
+    WFCView *rootView;
+    WFCPaintContext *paintContext;
+    struct WFCSize size;
 }
 @property (readwrite, copy) NSString *title;
-@property (readwrite) WFCWindowButtonOption buttonOption;
+@property (readwrite) WFCWindowStyle style;
+@property (readwrite) struct WFCSize size;
 
 @property (readwrite, retain) WFCView *rootView;
 
 - (id)initWithTitle:(NSString*)title;
 
+// @return  WFCWindow* it self
 - (instancetype)addToManagement;
 - (void)removeFromManagement;
 @end
 
 @interface WFCWindow (Appearance)
+- (void)initializePaintContext:(WFCPaintContext*)ctx;
 - (void)paint;
+
+- (void)windowWillPaint;
+- (void)windowDoPaint;
+- (void)windowDidPaint;
+
+- (void)windowDidSizeChange:(struct WFCSize)size;
 @end
 
 @interface WFCWindowManagement : NSObject {
@@ -103,6 +144,8 @@ typedef NS_ENUM( NSUInteger, WFCResponderEventType) {
 
     id target;
     SEL closeAction;
+
+    WFCPaintContext *paintContext;
 }
 @property (readwrite, retain) id target;
 @property (readwrite) SEL closeAction;

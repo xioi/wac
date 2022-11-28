@@ -148,6 +148,13 @@ struct WFCGLFontData {
 }
 + (void)cleanup {
 }
++ (void)loadGLFunctions {
+    int err = gladLoadGLLoader( SDL_GL_GetProcAddress);
+    if( err == GL_FALSE) {
+        // PKRuntimeError( @"This graphics device doesn't support OpenGL %d.%d.", WFC_OPENGL_VERSION_MAJOR, WFC_OPENGL_VERSION_MINOR);
+        // PKExit( 1);
+    }
+}
 
 - (WFCFont*)defaultFont {
     if( defaultFont == NULL) { // ini
@@ -182,7 +189,7 @@ struct WFCGLFontData {
     glDisable( GL_DEPTH_TEST);
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // FIXME:delete debug code below
+    // FIXME: delete debug code below
     glClearColor( 0, 1, 0, 1);
     glClear( GL_COLOR_BUFFER_BIT);
 }

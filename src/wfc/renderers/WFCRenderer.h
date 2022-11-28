@@ -75,6 +75,9 @@ struct WFCColor WFCColor( float r, float g, float b, float a);
 - (void)releaseTexture:(WFCTexture*)txt;
 - (BOOL)loadFont:(WFCFont*)font;
 - (void)releaseFont:(WFCFont*)font;
+
+- (void)clipBegin;
+- (void)clipEnd;
 @end
 
 @protocol WFCDefaultRenderResourceSource
@@ -89,13 +92,23 @@ struct WFCColor WFCColor( float r, float g, float b, float a);
 
     WFCTexture *lastTexture;
     BOOL textureUsed;
+
+    struct WFCRect clip;
 }
+@property (readwrite) struct WFCRect clip;
+
 + (void)initialize;
 + (void)cleanup;
 @end
 
-@interface WFCPaintContext : NSObject {
+@interface WFCPaintContext : NSObject <NSCopying> {
     @private
     struct WFCPoint offset;
+    WFCBaseRenderer *renderer;
 }
+@property (readwrite) struct WFCPoint offset;
+@property (readwrite, retain) WFCBaseRenderer *renderer;
+
++ (instancetype)paintContextWithRenderer:(WFCBaseRenderer*)renderer_;
+- (id)initWithRenderer:(WFCBaseRenderer*)renderer_;
 @end

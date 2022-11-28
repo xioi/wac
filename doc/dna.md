@@ -21,7 +21,7 @@ function getDNA(O) {
 
 So, the format of DNA is:
 ```
-<version>:<name>:<scale>:<hat>:<head>:<body>:<arm>:<shoe>:<eye>:<mouth>:<item>:<accesssory>:<wing>:<haircolor>
+<version>:<name>:<scale>:<hat>:<head>:<body>:<arm>:<shoe>:<eye>:<mouth>:<item>:<accessory>:<wing>:<haircolor>
 ```
 
 e.g. (value of "version" field in the latest Create.swf is 3.39)
@@ -43,7 +43,7 @@ like this example of Meiling:
 There're more fields. (value of "version" field in the latest Create.swf Extended is 3.4)
 
 ```
-<version>:<name>:<scale>:<hat>:<head>:<body>:<arm>:<shoe>:<eye>:<mouth>:<item>:<accesssory>:<wing>:<haircolor>:<skincolor>:<???>
+<version>:<name>:<scale>:<hat>:<head>:<body>:<arm>:<shoe>:<eye>:<mouth>:<item>:<accessory>:<wing>:<haircolor>:<skincolor>:<???>
 ```
 
 (The last field is unknown,

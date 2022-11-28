@@ -24,6 +24,7 @@ int main( int argc, char **argv) {
     WFCWindowManagement *management = WFCWindowManagementContext();
     [management setTarget:[[application new] autorelease]];
     [management setCloseAction:@selector(close:)];
+    
     while( running) {
         while( [management pollEvent]) {
         }
