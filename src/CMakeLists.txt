@@ -14,6 +14,7 @@ endif()
 add_subdirectory( plutosvg)
 add_subdirectory( pk)
 add_subdirectory( wfc)
+add_subdirectory( ckc)
 
 add_executable( wac "")
 target_sources( wac PRIVATE
@@ -21,7 +22,7 @@ target_sources( wac PRIVATE
     "cocoa.m"
     ${nfd_src})
 
-target_link_libraries( wac PRIVATE wfc)
+target_link_libraries( wac PRIVATE wfc ckc)
 target_compile_options( wac PRIVATE ${WAC_OBJC_FLAGS})
 set_target_properties( wac
     PROPERTIES
