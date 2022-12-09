@@ -22,7 +22,7 @@ target_sources( wac PRIVATE
     "cocoa.m"
     ${nfd_src})
 
-target_link_libraries( wac PRIVATE wfc ckc)
+target_link_libraries( wac PRIVATE wfc ckc Intl::Intl)
 target_compile_options( wac PRIVATE ${WAC_OBJC_FLAGS})
 set_target_properties( wac
     PROPERTIES

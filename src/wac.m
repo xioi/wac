@@ -4,6 +4,8 @@
 #import <renderers/gl/WFCGLRenderer.h>
 #import <PKException.h>
 #import <SDL.h>
+#import <libintl.h>
+#define _( text) gettext( text)
 
 NSString* WACFormat( NSString *fmt, ...);
 BOOL running = YES;
@@ -19,7 +21,7 @@ int main( int argc, char **argv) {
     init.argv = argv;
     WFCInit( &init);
 
-    WFCWindow *window = [[[WFCSDLWindow alloc] initWithTitle:@"Waffle & Cookie"] addToManagement];
+    WFCWindow *window = [[[WFCSDLWindow alloc] initWithTitle:@( _( "Waffle & Cookie"))] addToManagement];
     window.view = [[[WFCColoredRectView alloc] initWithColor:WFCColor( 1, 0, 0, 1)] autorelease];
 
     WFCWindowManagement *management = WFCWindowManagementContext();
