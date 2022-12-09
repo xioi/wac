@@ -25,10 +25,10 @@ BOOL CKCTryDecodeWFCColor( NSString *src, struct WFCColor *color) {
 }
 
 // XXX: to be tested
-NSString* CKCEncodeLegacyCharacterIntoDNA( CKCLegacyCharacter *source, CKCLegacyCharacterVersion mode) {
+NSString* CKCEncodeLegacyCharacterIntoDNA( CKCLegacyCharacter *source, CKCLegacyCharacterVersion target) {
     const char *createSwf = "3.39", *createSwfExtended = "3.4";
     NSString *result = NULL;
-    switch( mode) {
+    switch( target) {
         case CKCLegacyCharacterVersionCreateSwf3_39:
             result = [NSString stringWithFormat:@"%s:%@:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%@",
                         createSwf, source.name, (unsigned long)source.scale,

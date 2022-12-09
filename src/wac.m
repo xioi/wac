@@ -20,6 +20,7 @@ int main( int argc, char **argv) {
     WFCInit( &init);
 
     WFCWindow *window = [[[WFCSDLWindow alloc] initWithTitle:@"Waffle & Cookie"] addToManagement];
+    window.view = [[[WFCColoredRectView alloc] initWithColor:WFCColor( 1, 0, 0, 1)] autorelease];
 
     WFCWindowManagement *management = WFCWindowManagementContext();
     [management setTarget:[[application new] autorelease]];

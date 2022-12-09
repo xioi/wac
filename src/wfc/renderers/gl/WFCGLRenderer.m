@@ -1,5 +1,6 @@
 #import "WFCGLRenderer.h"
 #import <PKLoader.h>
+#import <PKException.h>
 #import <PKFont.h>
 #import <glad/glad.h>
 #import <SDL.h>
@@ -151,8 +152,8 @@ struct WFCGLFontData {
 + (void)loadGLFunctions {
     int err = gladLoadGLLoader( SDL_GL_GetProcAddress);
     if( err == GL_FALSE) {
-        // PKRuntimeError( @"This graphics device doesn't support OpenGL %d.%d.", WFC_OPENGL_VERSION_MAJOR, WFC_OPENGL_VERSION_MINOR);
-        // PKExit( 1);
+        PKRuntimeError( @"This graphics device doesn't support OpenGL.");
+        PKExit( 1);
     }
 }
 
@@ -368,7 +369,7 @@ struct WFCGLFontData {
     mat4_ortho( (mfloat_t*)&projectionMatrix, 0, resolution.w, resolution.h, 0, -10, 10);
 }
 - (void)setViewport:(struct WFCRect)viewport {
-    viewport.origin.y = resolution.h - viewport.origin.y;
+    viewport.origin.y = resolution.h - viewport.origin.y - viewport.size.h;
     glViewport( (int)viewport.origin.x, (int)viewport.origin.y, (int)viewport.size.w, (int)viewport.size.h);
 }
 @end

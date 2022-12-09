@@ -130,12 +130,10 @@
 @end
 
 @implementation WFCPaintContext
-@synthesize offset;
 @synthesize renderer;
 
 - (id)copyWithZone:(nullable NSZone *)zone {
     WFCPaintContext *ctx = [[[self class] alloc] initWithRenderer:self.renderer];
-    ctx.offset = self.offset;
     return ctx;
 }
 
@@ -146,7 +144,6 @@
 - (id)initWithRenderer:(WFCBaseRenderer*)renderer_ {
     if( self = [super init]) {
         renderer = renderer_;
-        offset = WFCPoint( 0, 0);
     }
     return self;
 }
@@ -174,4 +171,17 @@ struct WFCColor WFCColor( float r, float g, float b, float a) {
     struct WFCColor c;
     c.r = r;c.g = g;c.b = b;c.a = a;
     return c;
+}
+
+struct vec2 WFCPointToVec2( struct WFCPoint p) {
+    return svec2( p.x, p.y);
+}
+struct vec2 WFCSizeToVec2( struct WFCSize s) {
+    return svec2( s.w, s.h);
+}
+struct WFCPoint WFCVec2ToPoint( struct vec2 v) {
+    return WFCPoint( v.x, v.y);
+}
+struct WFCSize WFCVec2ToSize( struct vec2 v) {
+    return WFCSize( v.x, v.y);
 }

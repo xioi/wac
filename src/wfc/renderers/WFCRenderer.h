@@ -23,6 +23,11 @@ struct WFCSize WFCSize( float w, float h);
 struct WFCRect WFCRect( float x, float y, float w, float h);
 struct WFCColor WFCColor( float r, float g, float b, float a);
 
+struct vec2 WFCPointToVec2( struct WFCPoint p);
+struct vec2 WFCSizeToVec2( struct WFCSize s);
+struct WFCPoint WFCVec2ToPoint( struct vec2 v);
+struct WFCSize WFCVec2ToSize( struct vec2 v);
+
 @interface WFCTexture : NSObject {
     @private
     NSInteger width;
@@ -103,10 +108,8 @@ struct WFCColor WFCColor( float r, float g, float b, float a);
 
 @interface WFCPaintContext : NSObject <NSCopying> {
     @private
-    struct WFCPoint offset;
     WFCBaseRenderer *renderer;
 }
-@property (readwrite) struct WFCPoint offset;
 @property (readwrite, retain) WFCBaseRenderer *renderer;
 
 + (instancetype)paintContextWithRenderer:(WFCBaseRenderer*)renderer_;

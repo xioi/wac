@@ -58,7 +58,7 @@
 
 @implementation WFCResponder
 - (void)onAnimation:(WFCAnimationContext*)ctx {}
-- (void)paint:(WFCPaintContext*)context {}
+- (void)paint:(WFCPaintContext*)context offset:(struct WFCPoint)offset {}
 
 - (void)onMouseDown:(WFCResponderEvent*)event {}
 - (void)onMouseUp:(WFCResponderEvent*)event {}
@@ -114,6 +114,24 @@
 
 @implementation WFCColoredRectView
 @synthesize color;
+
+- (id)init {
+    if( self = [super init]) {
+        color = WFCColor( 0, 0, 0, 1);
+    }
+    return self;
+}
+- (id)initWithColor:(struct WFCColor)color_ {
+    if( self = [self init]) {
+        color = color_;
+    }
+    return self;
+}
+
+- (void)paint:(WFCPaintContext*)context offset:(struct WFCPoint)offset {
+    WFCBaseRenderer *rnd = context.renderer;
+    [rnd drawFilledRectAt:WFCPointToVec2( self.bounds.origin) size:WFCSizeToVec2( self.bounds.size) color:color];
+}
 @end
 
 @implementation WFCWindow
@@ -121,13 +139,13 @@
 @synthesize style;
 @synthesize size;
 
-- (WFCView*)rootView {
-    return rootView;
+- (WFCView*)view {
+    return view;
 }
-- (void)setRootView:(WFCView*)rv {
-    [rootView release];
-    rootView = [rv retain];
-    // TODO: set size
+- (void)setView:(WFCView*)rv {
+    [view release];
+    view = [rv retain];
+    [self resizeView];
 }
 
 - (id)init {
@@ -158,6 +176,12 @@
     WFCWindowManagement *mgr = WFCWindowManagementContext();
     [mgr removeWindow:self];
 }
+
+- (void)resizeView {
+    const float padding = 10; // TODO: various value
+    struct WFCSize cur_size = self.size;
+    [self.view setBounds:WFCRect( padding, padding, cur_size.w - 2 * padding, cur_size.h - 2 * padding)];
+}
 @end
 
 @implementation WFCWindow (Appearance)
@@ -169,16 +193,16 @@
     [self windowDoPaint];
     [self windowDidPaint];
 }
+- (void)paint:(WFCPaintContext*)context offset:(struct WFCPoint)offset {
+    [self.view paint:context offset:offset];
+}
 
 - (void)windowWillPaint {}
 - (void)windowDoPaint {}
 - (void)windowDidPaint {}
 
 - (void)windowDidSizeChange:(struct WFCSize)size_ {
-    NSLog( @"Size changed to [%.0f, %.0f]", size_.w, size_.h);
-    if( size_.h < 300) {
-        self.size = WFCSize( size_.w, 300);
-    }
+    [self resizeView];
 }
 @end
 

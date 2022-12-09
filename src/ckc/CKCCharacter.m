@@ -21,7 +21,7 @@
 
 @synthesize unknownField;
 
-- (id)initWithVersion:(float)version_ {
+- (id)initWithVersion:(CKCLegacyCharacterVersion)version_ {
     if( self = [self init]) {
         self.version = version_;
     }

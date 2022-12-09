@@ -71,7 +71,7 @@ typedef NS_ENUM( NSUInteger, CKCCharacterPartType) {
 
 @property (readwrite) NSUInteger unknownField;
 
-- (id)initWithVersion:(float)version;
+- (id)initWithVersion:(CKCLegacyCharacterVersion)version;
 - (id)initWithDNA:(NSString*)dna;
 + (instancetype)legacyCharacterFromDNA:(NSString*)dna;
 

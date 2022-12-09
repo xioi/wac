@@ -65,8 +65,9 @@ typedef NS_ENUM( NSUInteger, WFCResponderEventType) {
 @interface WFCResponder : NSObject
 // - (void)update:(float)delta;
 // - (void)requestBeginAnimation;
+// - (void)requestEndAnimation;
 // - (void)onAnimation:(WFCAnimationContext*)ctx;
-- (void)paint:(WFCPaintContext*)context;
+- (void)paint:(WFCPaintContext*)context offset:(struct WFCPoint)offset;
 
 - (void)onMouseDown:(WFCResponderEvent*)event;
 - (void)onMouseUp:(WFCResponderEvent*)event;
@@ -104,13 +105,15 @@ typedef NS_ENUM( NSUInteger, WFCResponderEventType) {
     struct WFCColor color;
 }
 @property (readwrite) struct WFCColor color;
+
+- (id)initWithColor:(struct WFCColor)color_;
 @end
 
 @interface WFCWindow : WFCResponder {
     @protected
     NSString *title;
     WFCWindowStyle style;
-    WFCView *rootView;
+    WFCView *view;
     WFCPaintContext *paintContext;
     struct WFCSize size;
 }
@@ -118,7 +121,7 @@ typedef NS_ENUM( NSUInteger, WFCResponderEventType) {
 @property (readwrite) WFCWindowStyle style;
 @property (readwrite) struct WFCSize size;
 
-@property (readwrite, retain) WFCView *rootView;
+@property (readwrite, retain) WFCView *view;
 
 - (id)initWithTitle:(NSString*)title;
 

@@ -62,11 +62,20 @@ SDL_GLContext gGLContext;
     SDL_GL_MakeCurrent( window, gGLContext);
 }
 - (void)windowDoPaint {
-    // WFCGLRenderer *rnd = (WFCGLRenderer*)ctx.renderer;
     [gGLRenderer renderBegin];
+    struct WFCSize cur_size = self.size;
+    [gGLRenderer setResolution:cur_size];
+    [gGLRenderer setViewport:WFCRect( 0, 0, cur_size.w, cur_size.h)];
+    WFCPaintContext *ctx = [WFCPaintContext paintContextWithRenderer:gGLRenderer]; // TODO: cache this context
+    [self paint:ctx offset:WFCPoint( 0, 0)];
+    [ctx release];
     [gGLRenderer renderEnd];
 }
 - (void)windowDidPaint {
     SDL_GL_SwapWindow( window);
+}
+
+- (void)windowDidSizeChange:(struct WFCSize)size_ {
+    [super windowDidSizeChange:size_];
 }
 @end

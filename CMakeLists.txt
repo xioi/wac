@@ -2,6 +2,7 @@ cmake_minimum_required( VERSION 3.1)
 project( wac C OBJC)
 
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON) # for ccls
+list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 set( WAC_OBJC_FLAGS
         -fconstant-string-class=NSConstantString
@@ -24,8 +25,8 @@ if( ${WAC_DEBUG})
     add_compile_definitions( WAC_DEBUG)
 endif()
 
-find_package( SDL2 CONFIG REQUIRED)
-find_package( freetype CONFIG REQUIRED)
-find_package( yaml CONFIG REQUIRED)
+find_package( SDL2 REQUIRED)
+find_package( Freetype REQUIRED)
+find_package( Intl REQUIRED)
 
 add_subdirectory( src)

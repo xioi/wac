@@ -7,4 +7,4 @@ target_sources( panku PRIVATE
 )
 # message( STATUS ${WAC_OBJC_INCLUDE_DIR})
 target_include_directories( panku PUBLIC "." ${WAC_OBJC_INCLUDE_DIR})
-target_link_libraries( panku freetype)
+target_link_libraries( panku Freetype::Freetype)
