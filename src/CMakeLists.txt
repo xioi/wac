@@ -11,7 +11,6 @@ elseif( WIN32)
     set( WAC_OBJC_INCLUDE_DIR "${WAC_GNUSTEP_ROOT}/System/Library/Headers")
 endif()
 
-add_subdirectory( plutosvg)
 add_subdirectory( pk)
 add_subdirectory( wfc)
 add_subdirectory( ckc)

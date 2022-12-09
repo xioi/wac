@@ -29,4 +29,5 @@ find_package( SDL2 REQUIRED)
 find_package( Freetype REQUIRED)
 find_package( Intl REQUIRED)
 
+add_subdirectory( plutosvg)
 add_subdirectory( src)
