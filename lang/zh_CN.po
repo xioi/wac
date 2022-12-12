@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-09 22:46+0800\n"
-"PO-Revision-Date: 2022-12-09 22:50+0800\n"
+"POT-Creation-Date: 2022-12-12 10:22+0800\n"
+"PO-Revision-Date: 2022-12-12 10:25+0800\n"
 "Last-Translator: liuxiaokang <floweylyu@outlook.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -18,14 +18,37 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.2.2\n"
 
-#: wac.m:24
-msgid "Waffle & Cookie"
-msgstr "华夫饼配曲奇"
-
-#: cocoa.m:11
+#: ../src/cocoa.m:11
 msgid "Custom"
 msgstr "自定义"
 
-#: cocoa.m:20
+#: ../src/cocoa.m:20
 msgid "Custom Item 1"
 msgstr "自定义项目 1"
+
+#: ../ui/wac.ui:20 ../ui/wac.ui:60
+msgid "_File"
+msgstr "文件（_F）"
+
+#: ../ui/wac.ui:29
+msgid "_New"
+msgstr "新建文件（_N）"
+
+#: ../ui/wac.ui:62
+msgid "_New File"
+msgstr "新建文件（_N）"
+
+#: ../ui/wac.ui:68
+msgid "Close All"
+msgstr "关闭所有"
+
+#: ../ui/wac.ui:72
+msgid "_Help"
+msgstr "帮助（_H）"
+
+#: ../ui/wac.ui:74
+msgid "_About"
+msgstr "关于（_A）"
+
+#~ msgid "Waffle & Cookie"
+#~ msgstr "华夫饼配曲奇"

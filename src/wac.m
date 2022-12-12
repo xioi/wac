@@ -1,25 +1,46 @@
 #import <Foundation/Foundation.h>
 #import <gtk/gtk.h>
+#import <stdlib.h>
 #import "i18n.h"
 
 NSString* WACFormat( NSString *fmt, ...);
-
-int main( int argc, char **argv) {
-    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+static void activate( GtkApplication *app, gpointer data) {
     GtkBuilder *builder;
     GError *error = NULL;
     GObject *window;
-    gtk_init( &argc, &argv);
     builder = gtk_builder_new();
     if( gtk_builder_add_from_file( builder, "ui/wac.ui", &error) == 0) {
         NSLog( @"Error %s", error->message);
         g_clear_error( &error);
-        return 1;
+        exit( 1);
     }
     window = gtk_builder_get_object( builder, "wac_window");
-    g_signal_connect( window, "destroy", G_CALLBACK( gtk_main_quit), NULL);
+    gtk_window_set_application( GTK_WINDOW( window), app);
 
-    gtk_main();
+    GMenu *gmenu;// = g_menu_new();
+    gmenu = G_MENU( gtk_builder_get_object( builder, "app_menu"));
+
+    // GMenu *app_menu, *section1;
+    // app_menu = G_MENU( gtk_application_get_app_menu( app));
+    
+    // section1 = g_menu_new();
+    // g_menu_append( section1, _( "_New"), "win.new");
+    // g_menu_prepend_section( app_menu, _( "_File"), G_MENU_MODEL( section1));
+    // g_menu_append_submenu( gmenu, _( "_File"), G_MENU_MODEL( section1));
+    gtk_application_set_menubar( app, G_MENU_MODEL( gmenu));
+
+    gtk_widget_hide( GTK_WIDGET( gtk_builder_get_object( builder, "wac_menubar")));
+
+    // gtk_application_set_app_menu( app, G_MENU_MODEL( app_menu));
+    // NSLog( @"%lld", (long long)(gtk_application_get_app_menu( app)));
+}
+
+int main( int argc, char **argv) {
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+    GtkApplication *app = gtk_application_new( "org.nopss.wac", G_APPLICATION_DEFAULT_FLAGS);
+    g_signal_connect( app, "activate", G_CALLBACK( activate), NULL);
+    int result = g_application_run( G_APPLICATION( app), argc, argv);
+    g_object_unref( app);
     [pool release];
     return 0;
 }

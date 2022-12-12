@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-09 22:46+0800\n"
+"POT-Creation-Date: 2022-12-12 10:22+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,14 +17,34 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: wac.m:24
-msgid "Waffle & Cookie"
-msgstr ""
-
-#: cocoa.m:11
+#: ../src/cocoa.m:11
 msgid "Custom"
 msgstr ""
 
-#: cocoa.m:20
+#: ../src/cocoa.m:20
 msgid "Custom Item 1"
+msgstr ""
+
+#: ../ui/wac.ui:20 ../ui/wac.ui:60
+msgid "_File"
+msgstr ""
+
+#: ../ui/wac.ui:29
+msgid "_New"
+msgstr ""
+
+#: ../ui/wac.ui:62
+msgid "_New File"
+msgstr ""
+
+#: ../ui/wac.ui:68
+msgid "Close All"
+msgstr ""
+
+#: ../ui/wac.ui:72
+msgid "_Help"
+msgstr ""
+
+#: ../ui/wac.ui:74
+msgid "_About"
 msgstr ""
