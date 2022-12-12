@@ -2,11 +2,13 @@
 #   import <AppKit/AppKit.h>
 #endif
 
+#import "i18n.h"
+
 void setup_cocoa() { // test menu
 #ifdef __APPLE__
     NSMenuItem* menuBarItem = [[NSMenuItem alloc]
 
-                        initWithTitle:@"Custom" action:NULL keyEquivalent:@""];
+                        initWithTitle:@( _( "Custom")) action:NULL keyEquivalent:@""];
     // title localization is omitted for compactness
     NSMenu* newMenu = [[NSMenu alloc] initWithTitle:@"Custom"];
     [menuBarItem setSubmenu:newMenu];
@@ -15,7 +17,7 @@ void setup_cocoa() { // test menu
 
     newItem = [[NSMenuItem alloc]
 
-                initWithTitle:@"Custom Item 1"
+                initWithTitle:@( _( "Custom Item 1"))
 
                 action:@selector(menuItem1Action:)
 

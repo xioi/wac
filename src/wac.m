@@ -1,51 +1,28 @@
-#import "glad/glad.h"
-#import <WFCEntry.h>
-#import <platforms/sdl/WFCSDLWindow.h>
-#import <renderers/gl/WFCGLRenderer.h>
-#import <PKException.h>
-#import <SDL.h>
-#import <libintl.h>
-#define _( text) gettext( text)
+#import <Foundation/Foundation.h>
+#import <gtk/gtk.h>
+#import "i18n.h"
 
 NSString* WACFormat( NSString *fmt, ...);
-BOOL running = YES;
-
-@interface application : NSObject
-- (void)close:(WFCWindowManagement*)sender;
-@end
 
 int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
-    struct WFCInit init;
-    init.argc = argc;
-    init.argv = argv;
-    WFCInit( &init);
-
-    WFCWindow *window = [[[WFCSDLWindow alloc] initWithTitle:@( _( "Waffle & Cookie"))] addToManagement];
-    window.view = [[[WFCColoredRectView alloc] initWithColor:WFCColor( 1, 0, 0, 1)] autorelease];
-
-    WFCWindowManagement *management = WFCWindowManagementContext();
-    [management setTarget:[[application new] autorelease]];
-    [management setCloseAction:@selector(close:)];
-    
-    while( running) {
-        while( [management pollEvent]) {
-        }
-        [management updateWindows:1.0/30];
-        [management paintWindows];
-        SDL_Delay( 33);
+    GtkBuilder *builder;
+    GError *error = NULL;
+    GObject *window;
+    gtk_init( &argc, &argv);
+    builder = gtk_builder_new();
+    if( gtk_builder_add_from_file( builder, "wac.ui", &error) == 0) {
+        NSLog( @"Error %s", error->message);
+        g_clear_error( &error);
+        return 1;
     }
-end:
-    WFCShutdown();
+    window = gtk_builder_get_object( builder, "wac_window");
+    g_signal_connect( window, "destroy", G_CALLBACK( gtk_main_quit), NULL);
+
+    gtk_main();
     [pool release];
     return 0;
 }
-
-@implementation application
-- (void)close:(WFCWindowManagement*)sender {
-    running = NO;
-}
-@end
 
 // NSLog( @"%@", WACFormat( @"{0} {1} {0}", @"0", @"1")); ---> "0 1 0"
 NSString* WACFormat( NSString *fmt, ...) {

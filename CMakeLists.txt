@@ -2,7 +2,6 @@ cmake_minimum_required( VERSION 3.1)
 project( wac C OBJC)
 
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON) # for ccls
-list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 set( WAC_OBJC_FLAGS
         -fconstant-string-class=NSConstantString
@@ -25,7 +24,10 @@ if( ${WAC_DEBUG})
     add_compile_definitions( WAC_DEBUG)
 endif()
 
-find_package( SDL2 REQUIRED)
+find_package( PkgConfig REQUIRED)
+pkg_check_modules( gtk3 REQUIRED IMPORTED_TARGET "gtk+-3.0")
+pkg_check_modules( sdl2 REQUIRED IMPORTED_TARGET "sdl2")
+
 find_package( Freetype REQUIRED)
 find_package( Intl REQUIRED)
 
