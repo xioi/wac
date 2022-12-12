@@ -11,7 +11,7 @@ int main( int argc, char **argv) {
     GObject *window;
     gtk_init( &argc, &argv);
     builder = gtk_builder_new();
-    if( gtk_builder_add_from_file( builder, "wac.ui", &error) == 0) {
+    if( gtk_builder_add_from_file( builder, "ui/wac.ui", &error) == 0) {
         NSLog( @"Error %s", error->message);
         g_clear_error( &error);
         return 1;

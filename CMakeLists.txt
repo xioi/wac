@@ -33,3 +33,5 @@ find_package( Intl REQUIRED)
 
 add_subdirectory( plutosvg)
 add_subdirectory( src)
+
+file( COPY ${CMAKE_CURRENT_SOURCE_DIR}/ui DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
