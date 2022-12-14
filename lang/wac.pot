@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 10:22+0800\n"
+"POT-Creation-Date: 2022-12-13 11:11+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,26 +25,22 @@ msgstr ""
 msgid "Custom Item 1"
 msgstr ""
 
-#: ../ui/wac.ui:20 ../ui/wac.ui:60
+#: ../ui/wac.ui:33
 msgid "_File"
 msgstr ""
 
-#: ../ui/wac.ui:29
-msgid "_New"
-msgstr ""
-
-#: ../ui/wac.ui:62
+#: ../ui/wac.ui:35
 msgid "_New File"
 msgstr ""
 
-#: ../ui/wac.ui:68
+#: ../ui/wac.ui:41
 msgid "Close All"
 msgstr ""
 
-#: ../ui/wac.ui:72
+#: ../ui/wac.ui:45
 msgid "_Help"
 msgstr ""
 
-#: ../ui/wac.ui:74
+#: ../ui/wac.ui:47
 msgid "_About"
 msgstr ""

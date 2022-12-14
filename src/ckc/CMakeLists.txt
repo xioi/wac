@@ -4,4 +4,4 @@ target_sources( ckc PRIVATE
     "CKCCharacter.m"
     "CKCWalfasDNA.m")
 target_link_libraries( ckc PUBLIC
-    wfc)
+    PkgConfig::gtk3)

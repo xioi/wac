@@ -1,26 +1,26 @@
 #import "CKCWalfasDNA.h"
 #import <string.h>
 
-NSString* CKCEncodeWFCColor( struct WFCColor color) {
+NSString* CKCEncodeGdkRGBA( GdkRGBA color) {
     unsigned char r, g, b;
-    r = color.r * 256;
-    g = color.g * 256;
-    b = color.b * 256;
+    r = color.red * 256;
+    g = color.green * 256;
+    b = color.blue * 256;
     char buf[10];
     sprintf( buf, "%02X%02X%02X", r, g, b);
     return [[NSString stringWithUTF8String:buf] autorelease];
 }
 
-BOOL CKCTryDecodeWFCColor( NSString *src, struct WFCColor *color) {
+BOOL CKCTryDecodeGdkRGBA( NSString *src, GdkRGBA *color) {
     if( [src length] != 6) return NO;
     unsigned int rr, gg, bb;
     sscanf( [src UTF8String], "%02X%02X%02X", &rr, &gg, &bb);
     rr = rr & 0xFF;
     gg = gg & 0xFF;
     bb = bb & 0xFF;
-    color->r = rr / 255.0f;
-    color->g = gg / 255.0f;
-    color->b = bb / 255.0f;
+    color->red = rr / 255.0f;
+    color->green = gg / 255.0f;
+    color->blue = bb / 255.0f;
     return YES;
 }
 
@@ -42,7 +42,7 @@ NSString* CKCEncodeLegacyCharacterIntoDNA( CKCLegacyCharacter *source, CKCLegacy
                         source.item,
                         source.accessory,
                         source.wing,
-                        CKCEncodeWFCColor( source.hairColor)];
+                        CKCEncodeGdkRGBA( source.hairColor)];
             break;
         case CKCLegacyCharacterVersionCreateSwfExtended3_4:
             result = [NSString stringWithFormat:@"%s:%@:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%lu:%@:%@:0",
@@ -57,8 +57,8 @@ NSString* CKCEncodeLegacyCharacterIntoDNA( CKCLegacyCharacter *source, CKCLegacy
                         source.item,
                         source.accessory,
                         source.wing,
-                        CKCEncodeWFCColor( source.hairColor),
-                        CKCEncodeWFCColor( source.skinColor)];
+                        CKCEncodeGdkRGBA( source.hairColor),
+                        CKCEncodeGdkRGBA( source.skinColor)];
             break;
     }
     if( result == NULL) return NULL; // ?!?

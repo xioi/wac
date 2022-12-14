@@ -14,11 +14,11 @@ Waffle & Cookie是一个非官方的动画软件，主要使用Objective-C编写
 <!--Then if you're using MS Windows, you also have to install GNUStep.-->
 Following packages are needed:
 ```
-gettext sdl2 freetype
+gettext librsvg freetype gtk3
 ```
 On macOS, you can use Homebrew to install them
 ```
-brew install gettext sdl2 freetype
+brew install gettext librsvg freetype gtk+-3.0
 ```
 then run in the project's root:
 ```
@@ -32,11 +32,11 @@ cmake --build build
 <!--Then if you're using MS Windows, you also have to install GNUStep.-->
 这些依赖项需要被安装：
 ```
-gettext sdl2 freetype
+gettext librsvg freetype gtk3
 ```
 在macOS上，你可以使用Homebrew来安装它们
 ```
-brew install gettext sdl2 freetype
+brew install gettext librsvg freetype gtk+-3.0
 ```
 接着在项目根目录运行：
 ```

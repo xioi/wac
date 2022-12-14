@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
-#import <renderers/WFCRenderer.h>
+#import <gtk/gtk.h>
+// #import <renderers/WFCRenderer.h>
 
 typedef NS_ENUM( NSUInteger, CKCLegacyCharacterVersion) {
     CKCLegacyCharacterVersionCreateSwf3_39,
@@ -47,8 +48,8 @@ typedef NS_ENUM( NSUInteger, CKCCharacterPartType) {
     NSUInteger accessory;
     NSUInteger wing;
 
-    struct WFCColor hairColor;
-    struct WFCColor skinColor;
+    GdkRGBA hairColor;
+    GdkRGBA skinColor;
 
     NSUInteger unknownField;
 }
@@ -66,8 +67,8 @@ typedef NS_ENUM( NSUInteger, CKCCharacterPartType) {
 @property (readwrite) NSUInteger accessory;
 @property (readwrite) NSUInteger wing;
 
-@property (readwrite) struct WFCColor hairColor;
-@property (readwrite) struct WFCColor skinColor;
+@property (readwrite) GdkRGBA hairColor;
+@property (readwrite) GdkRGBA skinColor;
 
 @property (readwrite) NSUInteger unknownField;
 
