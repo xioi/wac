@@ -1,7 +1,13 @@
 #import <Foundation/Foundation.h>
 #import <gtk/gtk.h>
 
+struct CKCRectangle {
+    float x, y, width, height;
+};
+
 struct _CKCRenderContext {
+    NSUInteger width, height;
+    // Platform
     cairo_t *cr;
 };
 typedef struct _CKCRenderContext CKCRenderContext;
@@ -29,19 +35,27 @@ typedef struct _CKCRenderContext CKCRenderContext;
 @property (readwrite) float scaley;
 @property (readwrite) float orignx;
 @property (readwrite) float origny;
-
-// - (void)renderWithContext:(CKCRenderContext*)ctx;
 @end
 
 @protocol CKCSceneControable
+- (BOOL)hitAtX:(float)x y:(float)y;
+- (void)beginDragAtX:(float)x y:(float)y;
+- (void)dragToX:(float)x y:(float)y;
+- (void)endDragAtX:(float)x y:(float)y;
 @end
 
+@class CKCScene;
 @interface CKCSceneObject : NSObject<CKCSceneApperance> {
     @protected
     float x, y, angle, scale;
+    CKCScene *scene;
 }
+@property float x;
+@property float y;
+@property float angle;
 
-// - (void)renderWithContext:(CKCRenderContext*)ctx;
+- (void)didAddToScene:(CKCScene*)scene_;
+- (void)didRemoveFromScene;
 @end
 
 @interface CKCScene : NSObject<CKCSceneApperance> {
@@ -50,7 +64,7 @@ typedef struct _CKCRenderContext CKCRenderContext;
 }
 
 - (void)addObject:(CKCSceneObject*)object;
-// - (void)renderWithContext:(CKCRenderContext*)ctx;
+- (void)enumerateObjectsUsingBlock:(void (^)(id , NSUInteger, BOOL * ))block;
 @end
 
 @interface CKCStaticObject : CKCSceneObject {

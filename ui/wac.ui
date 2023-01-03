@@ -7,58 +7,80 @@
     <property name="default-width">800</property>
     <property name="default-height">600</property>
     <child>
-      <object class="GtkBox">
+      <object class="GtkPaned">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="orientation">horizontal</property>
+        <property name="position">650</property>
         <child>
-          <object class="GtkPaned">
+          <object class="GtkBox">
             <property name="visible">True</property>
             <property name="orientation">vertical</property>
-            <property name="position">400</property>
             <child>
-              <object id="canvas" class="GtkDrawingArea">
-                <property name="visible">True</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox">
+              <object class="GtkPaned">
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
+                <property name="position">400</property>
+                <child>
+                  <object id="canvas" class="GtkDrawingArea">
+                    <property name="visible">True</property>
+                  </object>
+                </child>
                 <child>
                   <object class="GtkBox">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkButton">
+                      <object class="GtkBox">
                         <property name="visible">True</property>
-                        <property name="label">Play</property>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="visible">True</property>
+                            <property name="label">Play</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="visible">True</property>
+                            <property name="label">Pause</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton">
-                        <property name="visible">True</property>
-                        <property name="label">Pause</property>
-                      </object>
+                      <!-- To be placed a custom timeline widget  -->
+                      <placeholder/>
                     </child>
                   </object>
                 </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+              </packing>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeView">
+            <property name="visible">True</property>
+            <!-- <property name="model">liststore1</property> -->
+            <child>
+              <object class="GtkTreeViewColumn" id="test-column">
+                <property name="title">Test</property>
                 <child>
-                  <!-- To be placed a custom timeline widget  -->
-                  <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="file">ui/tmpimg.png</property>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                  </packing>
+                  <object class="GtkCellRendererText" id="test-renderer"/>
+                  <attributes>
+                    <attribute name="text">1</attribute>
+                  </attributes>
                 </child>
               </object>
             </child>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="selection">
+                <signal name="changed" handler="on_treeview_selection_changed"/>
+              </object>
+            </child>
           </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-          </packing>
         </child>
       </object>
     </child>

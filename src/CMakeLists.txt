@@ -8,7 +8,8 @@ add_subdirectory( ckc)
 
 add_executable( wac "")
 target_sources( wac PRIVATE
-    "wac.m")
+    "wac.m"
+    "WACEditor.m")
 
 target_link_libraries( wac PRIVATE PkgConfig::librsvg PkgConfig::gtk3 Intl::Intl plutosvg ckc)
 target_compile_options( wac PRIVATE ${WAC_OBJC_FLAGS})

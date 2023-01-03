@@ -1,15 +1,14 @@
-#import <Foundation/Foundation.h>
-#import <gtk/gtk.h>
 #import <stdlib.h>
+#import <unistd.h>
+#import <libgen.h>
 #import <librsvg/rsvg.h>
 #import <CKCScene.h>
-#import <plutosvg.h>
+#import "WACEditor.h"
 #import "i18n.h"
 
 cairo_surface_t *vg_surface = NULL;
-CKCSceneSprite *sSpr;
+WACEditorProxy *editor;
 
-NSString* WACFormat( NSString *fmt, ...);
 static gboolean canvas_draw( GtkWidget *canvas, cairo_t *cr, gpointer data) {
     guint width, height;
     GtkStyleContext *context;
@@ -21,32 +20,35 @@ static gboolean canvas_draw( GtkWidget *canvas, cairo_t *cr, gpointer data) {
 
     gtk_render_background( context, cr, 0, 0, width, height);
 
-    cairo_arc( cr, width / 2.0, height / 2.0, MIN( width, height) / 2.0, 0, 2 * G_PI);
+    CKCRenderContext ctx = {
+        .width = width,
+        .height = height,
+        .cr = cr
+    };
 
-    gtk_style_context_get_color( context, gtk_style_context_get_state( context), &color);
-    gdk_cairo_set_source_rgba( cr, &color);
-    // cairo_fill( cr);
-    cairo_stroke( cr);
-
-    cairo_select_font_face( cr, "sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size( cr, 70.0);
-    cairo_move_to( cr, 40.0, 80.0);
-    cairo_show_text( cr, "Я а он ем яблоко.");
-    cairo_move_to( cr, 50.0, 100.0);
-    cairo_text_path( cr, "Waffle & Cookie");
-    cairo_set_source_rgb( cr, 0.5, 0.5, 1);
-    cairo_fill_preserve( cr);
-    cairo_set_source_rgb( cr, 0, 0, 0);
-    cairo_stroke( cr);
-
-    CKCRenderContext ctx;
-    ctx.cr = cr;
-    [sSpr renderWithContext:&ctx];
+    [editor renderWithContext:&ctx];
     return NO;
 }
 
-static void action_new( GSimpleAction *action, GVariant *param, gpointer app) {
-    // printf( "new file\n");
+static void action_new( GSimpleAction *action, GVariant *param, gpointer app) {}
+
+static void do_press( GtkWidget *panel, GdkEventButton *event, gpointer data) {
+    [editor pointerDidPressAtX:event->x y:event->y button:event->button modifier:event->state];
+}
+
+static void do_release( GtkWidget *panel, GdkEventButton *event, gpointer data) {
+    [editor pointerDidReleaseAtX:event->x y:event->y button:event->button modifier:event->state];
+}
+
+static gboolean motion( GtkWidget *self, GdkEventMotion *event, gpointer d) {
+    [editor pointerDidMoveToX:event->x y:event->y];
+    return YES;
+}
+
+static gboolean redraw( gpointer data) {
+    [editor update];
+    gtk_widget_queue_draw( GTK_WIDGET( data));
+    return YES;
 }
 
 static void activate( GtkApplication *app, gpointer data) {
@@ -59,13 +61,21 @@ static void activate( GtkApplication *app, gpointer data) {
         g_clear_error( &error);
         exit( 1);
     }
+    // Window setting
     window = gtk_builder_get_object( builder, "wac_window");
     gtk_window_set_application( GTK_WINDOW( window), app);
     gtk_application_set_menubar( app, G_MENU_MODEL( gtk_builder_get_object( builder, "app_menu")));
-    
+    /// Main canvas
     GtkWidget *canvas = GTK_WIDGET( gtk_builder_get_object( builder, "canvas"));
-    g_signal_connect( canvas, "draw", G_CALLBACK( canvas_draw), NULL);
+    gtk_widget_add_events( canvas, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
 
+    g_signal_connect( canvas, "draw", G_CALLBACK( canvas_draw), NULL);
+    g_signal_connect( canvas, "button-press-event", G_CALLBACK( do_press), NULL);
+    g_signal_connect( canvas, "button-release-event", G_CALLBACK( do_release), NULL);
+    g_signal_connect( canvas, "motion-notify-event", G_CALLBACK( motion), NULL);
+
+    g_timeout_add( 1000 / 30, (GSourceFunc)redraw, (gpointer)canvas); // force canvas to redraw
+    /// App menu
     GActionEntry app_entries[] = {
         { "new", action_new, NULL, NULL, NULL}
     };
@@ -73,61 +83,96 @@ static void activate( GtkApplication *app, gpointer data) {
     g_action_map_add_action_entries( G_ACTION_MAP( app), app_entries, 1, NULL);
     gtk_application_set_accels_for_action( app, "app.new", new_file_accels);
 
-    gtk_window_present( GTK_WINDOW( window));
-
-    sSpr = [CKCSceneSprite new];
-    sSpr.identity = @"graphics/hat_tmp.svg";
-    sSpr.x = 100;
-    sSpr.y = 0;
+    // gtk_window_present( GTK_WINDOW( window));
 }
 
 int main( int argc, char **argv) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
+    chdir( dirname( argv[0])); // change the current working directory
+    editor = [[WACEditorProxy new] autorelease];
     int result = 0;
-    g_autoptr( GtkApplication) app = gtk_application_new( "org.nopss.wac", G_APPLICATION_DEFAULT_FLAGS);
+    g_autoptr( GtkApplication) app = gtk_application_new( "org.wac.animator", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect( app, "activate", G_CALLBACK( activate), NULL);
     result = g_application_run( G_APPLICATION( app), argc, argv);
     [pool release];
     return result;
 }
 
-// NSLog( @"%@", WACFormat( @"{0} {1} {0}", @"0", @"1")); ---> "0 1 0"
-NSString* WACFormat( NSString *fmt, ...) {
-    NSString *args[128], *now;
-    int i=0;
-    va_list l;
-    va_start( l, fmt);
-    while( (now = va_arg( l, NSString*)) != 0) {
-        args[i] = now;
-        ++i;
-    }
-    va_end( l);
-    NSMutableString *r = [NSMutableString new];
-    unsigned int begin = 0, ptr = 0, end = [fmt length];
-    while( ptr < end) {
-        unsigned int fw = ptr;
-        while( fw <= end) {
-            if( fw == end) {
-                [r appendString:[fmt substringWithRange:NSMakeRange( ptr - begin, fw - ptr)]];
-                break;
-            }
-            if( [fmt characterAtIndex:fw] == '{') {
-                [r appendString:[fmt substringWithRange:NSMakeRange( ptr - begin, fw - ptr)]];
-                ++fw;
-                unsigned int value = 0;
-                while( [fmt characterAtIndex:fw] != '}') {
-                    value *= 10;
-                    value += [fmt characterAtIndex:fw] - '0';
-                    ++fw;
-                }
-                // unsafe
-                [r appendString:args[value]];
-                ++fw;
-                break;
-            }
-            ++fw;
-        }
-        ptr = fw;
-    }
-    return r;
+@interface TCVariable : NSObject
+- (void)interpolateBetween:(id)first and:(id)second with:(float)x;
+@end
+
+@interface TCFloatVariable : TCVariable {
+    @private
+    float value;
 }
+@end
+
+@interface TCVec2Variable : TCVariable {
+    @private
+    float x, y;
+}
+@property float x;
+@property float y;
+@end
+
+@interface TCAnimatableObject : NSObject
+@end
+
+@interface TCTestObject : TCAnimatableObject {
+    @private
+    TCFloatVariable *alpha;
+    TCVec2Variable *position;
+}
+@property (readwrite, copy) TCFloatVariable *alpha;
+@property (readwrite, copy) TCVec2Variable *position;
+@end
+
+#import <objc/runtime.h>
+
+// int main( int argc, char **argv) {
+//     NSAutoreleasePool *pool = [NSAutoreleasePool new];
+//     TCTestObject *obj1 = [[TCTestObject new] autorelease];
+//     id pro1 = [obj1 valueForKey:@"position"];
+//     NSLog( @"\"position\": %@", NSStringFromClass( [pro1 class]));
+//     [pool release];
+//     return 0;
+// }
+
+@implementation TCVariable
+- (void)interpolateBetween:(id)first and:(id)second with:(float)x {}
+@end
+
+@implementation TCFloatVariable
+- (void)interpolateBetween:(id)first and:(id)second with:(float)x {
+    // dummy
+}
+@end
+
+@implementation TCVec2Variable
+@synthesize x;
+@synthesize y;
+
+- (id)copyWithZone:(NSZone*)zone {
+    TCVec2Variable *n = [[[self class] allocWithZone:zone] init];
+    [n setX:x];
+    [n setY:y];
+    return n;
+}
+@end
+
+@implementation TCAnimatableObject
+@end
+
+@implementation TCTestObject
+@synthesize position;
+@synthesize alpha;
+
+- (id)init {
+    if( self = [super init]) {
+        position = [TCVec2Variable new];
+        alpha = [TCFloatVariable new];
+    }
+    return self;
+}
+@end

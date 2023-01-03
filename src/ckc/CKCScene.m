@@ -2,7 +2,6 @@
 #import <librsvg/rsvg.h>
 
 @implementation CKCSceneSprite
-@synthesize identity;
 @synthesize x;
 @synthesize y;
 @synthesize angle;
@@ -10,6 +9,19 @@
 @synthesize scaley;
 @synthesize orignx;
 @synthesize origny;
+
+- (NSString*)identity {
+    return identity;
+}
+- (void)setIdentity:(NSString*)identity_ {
+    if( identity != identity_) {
+        if( ![identity_ isEqualTo:identity]) {
+            reloadFlag = YES; // have to reload
+        }
+        [identity release];
+        identity = [identity_ copy];
+    }
+}
 
 - (id)init {
     if( self = [super init]) {
@@ -51,7 +63,7 @@
         g_object_unref( file);
         if( !handle) {
             // error: failed to load svg
-            NSLog( @"error: failed to load svg");
+            NSLog( @"error: failed to load svg, %s", error->message);
             return;
         }
         RsvgRectangle rect;
@@ -63,14 +75,14 @@
         // set our orign...no, "rsvg_handle_get_geometry_for_element" cannot help us to cacluate the origin point
         // orignx = -rect.x;
         // origny = -rect.y;
-        
+
         if( !rsvg_handle_render_document( handle, cr, &rect, &error)) {
             cairo_destroy( cr);
             cairo_surface_destroy( target);
             g_object_unref( handle);
             *surface_ = NULL;
             // error: failed to render
-            NSLog( @"error: failed to render");
+            NSLog( @"error: failed to render, %s", error->message);
             return;
         }
         cairo_destroy( cr);
@@ -87,7 +99,6 @@
         cairo_surface_destroy( surface);
     }
     // Step2. load next image
-    // surface = cairo_image_surface_create_from_png( [identity UTF8String]);
     [self platformCreateImageWithIdentity:identity forSurface:&surface];
     // Step3. we don't need to reload image
     reloadFlag = NO;
@@ -104,20 +115,12 @@
         return;
     }
     cairo_t *cr = ctx->cr;
-    cairo_matrix_t mat;
-    mat.xy = mat.yx = mat.x0 = mat.y0 = 0;
-    mat.xx = mat.yy = 1;
     // save the status
     cairo_save( cr);
-    // initialize the matrix
-    cairo_set_matrix( cr, &mat);
-    // do some transformtation
-    // cairo_translate( cr, -orignx, -origny); // move image's orign point to (0, 0) // damn it, no need
-
+    cairo_translate( cr, x, y);
     cairo_scale( cr, scalex, scaley);
     cairo_rotate( cr, angle);
-    cairo_translate( cr, x, y);
-
+    // to draw this image
     cairo_set_source_surface( cr, surface, orignx, origny);
     cairo_paint( cr);
     cairo_restore( cr);
@@ -134,7 +137,11 @@
 - (void)addObject:(CKCSceneObject*)object {
     [objects addObject:object];
 }
+- (void)enumerateObjectsUsingBlock:(nonnull void (^)(id _Nonnull, NSUInteger, BOOL * _Nonnull))block {
+    [objects enumerateObjectsUsingBlock:block];
+}
 - (void)renderWithContext:(CKCRenderContext*)ctx {
+    // enumerate every object to render each
     [objects enumerateObjectsUsingBlock:^( CKCSceneObject *obj, NSUInteger i, BOOL *stop) {
         [obj renderWithContext:ctx];
     }];
@@ -142,6 +149,24 @@
 @end
 
 @implementation CKCSceneObject
+@synthesize x;
+@synthesize y;
+@synthesize angle;
+
+- (id)init {
+    if( self = [super init]) {
+        x = y = angle = 0;
+        scene = nil;
+    }
+    return self;
+}
+- (void)didAddToScene:(CKCScene*)scene_ {
+    [scene release];
+    scene = [scene_ retain];
+}
+- (void)didRemoveFromScene {
+    [scene release];
+}
 - (void)renderWithContext:(CKCRenderContext*)ctx {
     // Empty
 }
