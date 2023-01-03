@@ -45,8 +45,12 @@ static gboolean motion( GtkWidget *self, GdkEventMotion *event, gpointer d) {
     return YES;
 }
 
-static gboolean redraw( gpointer data) {
+static gboolean logical_frame( gpointer data) {
     [editor update];
+    return YES;
+}
+
+static gboolean redraw( gpointer data) {
     gtk_widget_queue_draw( GTK_WIDGET( data));
     return YES;
 }
@@ -74,6 +78,7 @@ static void activate( GtkApplication *app, gpointer data) {
     g_signal_connect( canvas, "button-release-event", G_CALLBACK( do_release), NULL);
     g_signal_connect( canvas, "motion-notify-event", G_CALLBACK( motion), NULL);
 
+    g_timeout_add( 1000 / 30, (GSourceFunc)logical_frame, NULL);
     g_timeout_add( 1000 / 30, (GSourceFunc)redraw, (gpointer)canvas); // force canvas to redraw
     /// App menu
     GActionEntry app_entries[] = {
