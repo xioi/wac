@@ -104,7 +104,7 @@ CKCSceneSprite *spr1;
     [scene enumerateObjectsUsingBlock:^( id obj, NSUInteger i, BOOL *stop) {
         if( [obj conformsToProtocol:@protocol( CKCSceneControable)]) {
             BOOL hit = [obj hitAtX:x y:y];
-            NSLog( @"is hit: %d", hit);
+            // NSLog( @"is hit: %d", hit);
             if( hit) {
                 hitObj = obj;
                 *stop = YES;

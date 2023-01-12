@@ -22,6 +22,9 @@ typedef struct _CKCRenderContext CKCRenderContext;
     float x, y, angle, scalex, scaley;
     float orignx, origny;
 
+    float realWidth, realHeight;
+    float width, height;
+
     BOOL reloadFlag;
 
     // Platform

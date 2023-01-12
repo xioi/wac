@@ -36,7 +36,7 @@
     return self;
 }
 
-- (void)platformCreateImageWithIdentity:(NSString*)path forSurface:(cairo_surface_t**)surface_ {
+- (float)platformCreateImageWithIdentity:(NSString*)path forSurface:(cairo_surface_t**)surface_ {
     // supported format: ( png, svg)
     // 1. find the extension hand by hand
     NSUInteger ei = [path length] - 1;
@@ -50,12 +50,13 @@
         }
     }
     if( ei == 0) { // it doesn't have extension 
-        return;
+        return 1;
     }
     
     // 2. try to match the extension
     if( [extension isEqualTo:@"png"]) { // try to load png
         *surface_ = cairo_image_surface_create_from_png( [path UTF8String]);
+        return 1;
     }else if( [extension isEqualTo:@"svg"]) { // try to load svg
         GError *error = NULL;
         GFile *file = g_file_new_for_path( [path UTF8String]);
@@ -64,17 +65,21 @@
         if( !handle) {
             // error: failed to load svg
             NSLog( @"error: failed to load svg, %s", error->message);
-            return;
+            return 1;
         }
+
+        const float svgScale = 4.0f;
         RsvgRectangle rect;
         rsvg_handle_get_geometry_for_element( handle, NULL, NULL, &rect, &error);
-        cairo_surface_t *target = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, rect.width, rect.height);
+        cairo_surface_t *target = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, rect.width * svgScale, rect.height * svgScale);
         cairo_t *cr = cairo_create( target);
         *surface_ = target;
 
         // set our orign...no, "rsvg_handle_get_geometry_for_element" cannot help us to cacluate the origin point
         // orignx = -rect.x;
         // origny = -rect.y;
+        rect.width *= svgScale;
+        rect.height *= svgScale;
 
         if( !rsvg_handle_render_document( handle, cr, &rect, &error)) {
             cairo_destroy( cr);
@@ -83,13 +88,15 @@
             *surface_ = NULL;
             // error: failed to render
             NSLog( @"error: failed to render, %s", error->message);
-            return;
+            return 1;
         }
         cairo_destroy( cr);
         g_object_unref( handle);
+        return svgScale;
     }else { // failed to match
         // bad extension
     }
+    return 1;
 }
 
 - (void)forceLoad {
@@ -99,7 +106,14 @@
         cairo_surface_destroy( surface);
     }
     // Step2. load next image
-    [self platformCreateImageWithIdentity:identity forSurface:&surface];
+    float scale = [self platformCreateImageWithIdentity:identity forSurface:&surface];
+    float w = cairo_image_surface_get_width( surface), h = cairo_image_surface_get_height( surface);
+    float rw = w / scale, rh = h / scale;
+    realWidth = rw;
+    realHeight = rh;
+    width = w;
+    height = h;
+
     // Step3. we don't need to reload image
     reloadFlag = NO;
 }
@@ -115,10 +129,11 @@
         return;
     }
     cairo_t *cr = ctx->cr;
+    float scale = 1.0f / (width / realWidth);
     // save the status
     cairo_save( cr);
     cairo_translate( cr, x, y);
-    cairo_scale( cr, scalex, scaley);
+    cairo_scale( cr, scalex * scale, scaley * scale);
     cairo_rotate( cr, angle);
     // to draw this image
     cairo_set_source_surface( cr, surface, orignx, origny);

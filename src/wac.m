@@ -92,8 +92,8 @@ static void activate( GtkApplication *app, gpointer data) {
 }
 
 int main( int argc, char **argv) {
-    NSAutoreleasePool *pool = [NSAutoreleasePool new];
     chdir( dirname( argv[0])); // change the current working directory
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
     editor = [[WACEditorProxy new] autorelease];
     int result = 0;
     g_autoptr( GtkApplication) app = gtk_application_new( "org.wac.animator", G_APPLICATION_DEFAULT_FLAGS);
@@ -102,82 +102,3 @@ int main( int argc, char **argv) {
     [pool release];
     return result;
 }
-
-@interface TCVariable : NSObject
-- (void)interpolateBetween:(id)first and:(id)second with:(float)x;
-@end
-
-@interface TCFloatVariable : TCVariable {
-    @private
-    float value;
-}
-@end
-
-@interface TCVec2Variable : TCVariable {
-    @private
-    float x, y;
-}
-@property float x;
-@property float y;
-@end
-
-@interface TCAnimatableObject : NSObject
-@end
-
-@interface TCTestObject : TCAnimatableObject {
-    @private
-    TCFloatVariable *alpha;
-    TCVec2Variable *position;
-}
-@property (readwrite, copy) TCFloatVariable *alpha;
-@property (readwrite, copy) TCVec2Variable *position;
-@end
-
-#import <objc/runtime.h>
-
-// int main( int argc, char **argv) {
-//     NSAutoreleasePool *pool = [NSAutoreleasePool new];
-//     TCTestObject *obj1 = [[TCTestObject new] autorelease];
-//     id pro1 = [obj1 valueForKey:@"position"];
-//     NSLog( @"\"position\": %@", NSStringFromClass( [pro1 class]));
-//     [pool release];
-//     return 0;
-// }
-
-@implementation TCVariable
-- (void)interpolateBetween:(id)first and:(id)second with:(float)x {}
-@end
-
-@implementation TCFloatVariable
-- (void)interpolateBetween:(id)first and:(id)second with:(float)x {
-    // dummy
-}
-@end
-
-@implementation TCVec2Variable
-@synthesize x;
-@synthesize y;
-
-- (id)copyWithZone:(NSZone*)zone {
-    TCVec2Variable *n = [[[self class] allocWithZone:zone] init];
-    [n setX:x];
-    [n setY:y];
-    return n;
-}
-@end
-
-@implementation TCAnimatableObject
-@end
-
-@implementation TCTestObject
-@synthesize position;
-@synthesize alpha;
-
-- (id)init {
-    if( self = [super init]) {
-        position = [TCVec2Variable new];
-        alpha = [TCFloatVariable new];
-    }
-    return self;
-}
-@end
