@@ -1,4 +1,8 @@
-# Waffle & Cookie(WAC) Project 华夫饼配曲奇工程
+# NO MORE WAC, GO USE FLASH&emsp;没有WAC了，去用Flash罢
+
+<br/>
+
+# ~~Waffle & Cookie(WAC) Project 华夫饼配曲奇工程~~
 ## What's WAC? WAC是什么？
 Waffle & Cookie is an unofficial animating software mainly written in Objective-C in order to create Walfas-like style Touhou(or other games and animes) animation and replace the swf version of Walfas, due to Adobe deciding to not support Flash. It is extendable and customizable, which allows you to add your own character's content into it and share on the Internet. It supports using vector image as character's parts so that the images wouldn't be blured. Additionally, WAC provides animation producing methods like the Flash software but not the original Walfas. It enables you to add keyframes and complex tween timing functions between keyframes so that you could make smooth Walfas-style animations.
 
